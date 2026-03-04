@@ -30,10 +30,13 @@ Every iteration is considered **done** only when ALL applicable criteria below a
 
 ## Testing
 
-- [ ] **Domain layer** — Unit tests with Vitest (no mocks, pure logic)
-- [ ] **Application layer** — Unit tests with Vitest (mock repository/port interfaces)
-- [ ] **Infrastructure layer** — Integration tests with Vitest (real DB when applicable)
+- [ ] **Application layer** — Unit tests with Vitest (mock ports/repos) — all use-case logic tested here
+- [ ] **Domain layer** — Unit tests ONLY for new value objects or domain services not already covered by application tests
+- [ ] **Infrastructure layer** — Integration tests ONLY for adapter concerns (request params, response parsing, connectivity) — do NOT duplicate use-case logic
 - [ ] **Presentation layer** — E2E tests with Playwright for new user-facing flows
+- [ ] No duplicate tests across layers
+- [ ] Application tests mock all external dependencies (no real DB or third-party calls)
+- [ ] Infrastructure integration tests hit real services (test containers / sandbox APIs)
 - [ ] All tests pass (`pnpm test`)
 - [ ] Coverage does not decrease from previous iteration
 
@@ -72,6 +75,10 @@ Every iteration is considered **done** only when ALL applicable criteria below a
 - [ ] New domain entities/value objects have JSDoc on public methods
 - [ ] New API routes have input/output types documented via TypeScript types
 - [ ] Breaking changes to existing interfaces are noted in the PR description
+- [ ] `CLAUDE.md` updated if architecture, commands, rules, or tech stack changed
+- [ ] `README.md` updated if features, setup steps, or project overview changed
+- [ ] `docs/PRD.md` iteration status updated if an iteration was completed
+- [ ] `docs/TECH_STACK.md` updated if dependencies or architecture decisions changed
 
 ---
 

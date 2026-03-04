@@ -82,11 +82,22 @@ pnpm test:e2e     # Run Playwright E2E tests
 ## Testing Strategy
 
 ```
-Domain       → Unit tests (pure logic, no mocks)
-Application  → Unit tests (mock repository/port interfaces)
-Infrastructure → Integration tests (real DB)
-Presentation → E2E tests (Playwright)
+Application    → Unit tests (mock ports/repos — this is the PRIMARY test layer)
+Domain         → Unit tests ONLY for value objects and domain services
+                 Skip if already covered by application-layer tests
+Infrastructure → Integration tests ONLY (request params, response shape, connectivity)
+                 Do NOT duplicate use-case logic — test the adapter, not the business rules
+Presentation   → E2E tests (Playwright)
 ```
+
+### Testing Rules
+
+- **Application layer is the main test surface** — all use-case logic is tested here with mocked ports
+- **Avoid duplicate tests** — if a domain entity behavior is exercised by a use-case test, don't add a separate domain test
+- **Domain tests are reserved for** value objects (validation, equality) and domain services (pure logic not invoked by a single use case)
+- **Infrastructure tests verify integration only** — correct HTTP params sent, responses parsed, DB queries run, app boots. Never re-test use-case branches
+- **No third-party calls in application tests** — mock all ports (DB, Gmail, etc.)
+- **Infrastructure integration tests hit the real external service** — use test containers or sandbox APIs
 
 ## Iteration Plan
 

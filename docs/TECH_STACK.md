@@ -66,11 +66,20 @@ Full-stack web application that connects to the Gmail API, built with **Clean Ar
 ### Testing Strategy by Architecture Layer
 
 ```
-Domain Layer       → Unit tests (pure logic, no mocks needed)
-Application Layer  → Unit tests (mock repository interfaces)
-Infrastructure     → Integration tests (real DB via test containers)
+Application Layer  → Unit tests (mock ports/repos) — PRIMARY test layer for all use-case logic
+Domain Layer       → Unit tests ONLY for value objects and domain services
+                     Skip if behavior is already covered by application-layer tests
+Infrastructure     → Integration tests ONLY (verify request params, response parsing, connectivity)
+                     Do NOT re-test use-case logic here — test the adapter, not the business rules
 Presentation       → E2E tests (Playwright)
 ```
+
+**Key principles:**
+- The application layer is the main test surface — all business logic branches are tested here
+- Avoid duplicate tests across layers; if a domain behavior is exercised by an application test, no separate domain test is needed
+- Application tests mock all external dependencies (DB, Gmail API) via port interfaces
+- Infrastructure tests hit real external services (test containers, sandbox APIs) but only verify integration concerns: correct parameters sent, responses parsed, service reachable
+- Domain tests are reserved for value objects (validation, equality, immutability) and domain services with pure logic not tied to a single use case
 
 ---
 
