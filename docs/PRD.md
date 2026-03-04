@@ -2,7 +2,7 @@
 
 ## Vision
 
-A CLI tool that connects to a Gmail account via the Gmail API, analyzes emails, and recommends which ones to delete to free up storage space. The tool helps users reclaim their Google storage by identifying large, old, or bulk emails that are safe to remove.
+A web application that connects to a Gmail account via the Gmail API, analyzes emails, and recommends which ones to delete to free up storage space. The app helps users reclaim their Google storage by identifying large, old, or bulk emails that are safe to remove.
 
 ## Problem
 
@@ -10,112 +10,106 @@ Gmail accounts accumulate years of emails — newsletters, promotions, large att
 
 ## Target User
 
-Developers and tech-savvy users comfortable with CLI tools who want to clean up their Gmail storage efficiently.
-
----
-
-## Tech Stack
-
-- **Runtime:** Node.js (TypeScript)
-- **Gmail Access:** Google Gmail API (OAuth2)
-- **CLI Framework:** Commander.js
-- **Output:** Terminal tables + optional JSON export
+Anyone who wants to clean up their Gmail storage efficiently through a simple, visual web interface.
 
 ---
 
 ## Iteration Plan
 
-### Iteration 1 — Init npm + TypeScript
+### Iteration 1 — Init Project
 
-**Goal:** Empty project that compiles.
+**Goal:** Empty project that compiles and serves a blank page.
 
-- `npm init`, install `typescript`, configure `tsconfig.json`
-- Create `src/index.ts` with a `console.log("hello")`
-- `npm run build` compiles to `dist/`
+- Initialize project with package manager and TypeScript
+- Create basic project structure (`src/`, config files)
+- Dev server runs and serves a blank page
 
-**Done when:** `npm run build && node dist/index.js` prints "hello".
-
----
-
-### Iteration 2 — CLI Entry Point
-
-**Goal:** CLI skeleton that responds to `--help`.
-
-- Install `commander`
-- Wire `src/index.ts` as CLI with program name `clean-gmail`
-- Add `bin` field in `package.json`
-
-**Done when:** `npx clean-gmail --help` prints usage.
+**Done when:** `npm run dev` opens a blank page in the browser.
 
 ---
 
-### Iteration 3 — Google OAuth2 Client
+### Iteration 2 — Landing Page
 
-**Goal:** Create an OAuth2 client that opens the browser for consent.
+**Goal:** Static landing page with app name and a "Sign in with Google" button (non-functional).
 
-- Install `googleapis`
-- Read `credentials.json` (user provides from Google Cloud Console)
-- Open browser → user approves → receive auth code
+- Create main layout component
+- Add app title, brief description, and a styled sign-in button
+- Responsive design for mobile and desktop
 
-**Done when:** Auth code is received and printed to console.
-
----
-
-### Iteration 4 — Persist Tokens
-
-**Goal:** Save and reuse OAuth tokens.
-
-- Exchange auth code for tokens
-- Save to `~/.clean-gmail/token.json` (file permissions 600)
-- On next run, load existing token; refresh if expired
-
-**Done when:** Second run skips browser and reuses saved token.
+**Done when:** Page renders with a sign-in button that does nothing yet.
 
 ---
 
-### Iteration 5 — `auth` Command
+### Iteration 3 — Google OAuth2 Flow
 
-**Goal:** Wire auth flow into the CLI.
+**Goal:** User can sign in with Google.
 
-- `clean-gmail auth` triggers the OAuth flow from iterations 3-4
-- Print success/failure message
+- Set up Google OAuth2 (redirect-based flow)
+- "Sign in with Google" button triggers OAuth consent screen
+- Receive auth code via redirect callback
 
-**Done when:** `clean-gmail auth` completes and saves token.
+**Done when:** User completes Google sign-in and is redirected back to the app.
 
 ---
 
-### Iteration 6 — `status` Command
+### Iteration 4 — Persist Auth Session
 
-**Goal:** Show basic account info.
+**Goal:** Save tokens and keep the user logged in.
 
-- `clean-gmail status` calls `gmail.users.getProfile`
+- Exchange auth code for access/refresh tokens
+- Store tokens (session storage or backend)
+- Auto-refresh expired tokens
+- Scopes: `gmail.readonly`
+
+**Done when:** Page reload keeps the user authenticated.
+
+---
+
+### Iteration 5 — Account Status View
+
+**Goal:** Show basic account info after login.
+
+- Call `gmail.users.getProfile` with stored token
 - Display: email address, total messages, total threads
+- Show a logged-in state (avatar/email in header, sign-out button)
 
-**Done when:** Command prints account stats. Prints error if not authenticated.
+**Done when:** Dashboard shows account stats. Unauthenticated users see the landing page.
 
 ---
 
-### Iteration 7 — List Large Emails (API Call)
+### Iteration 6 — Scan Large Emails (API)
 
-**Goal:** Query Gmail for large emails.
+**Goal:** Query Gmail for large emails and return metadata.
 
-- Use `gmail.users.messages.list` with `larger:5M` query
+- Service function: `gmail.users.messages.list` with `larger:5M` query
 - Fetch message metadata (sender, subject, date, size) in batches
-- Return raw results as an array
+- Handle API rate limits with retry logic
 
 **Done when:** Function returns array of large email metadata.
 
 ---
 
-### Iteration 8 — Format Output as Table
+### Iteration 7 — Display Large Emails Table
 
-**Goal:** Display email results as a readable table.
+**Goal:** Show large emails in a UI table.
 
-- Install `cli-table3`
-- Format email metadata into columns: sender, subject (40 chars), date, size
-- Show total count and total size at the bottom
+- Table component with columns: sender, subject (truncated), date, size
+- Sort by size descending
+- Show total count and total size as summary row
 
-**Done when:** `clean-gmail scan --large` prints a formatted table.
+**Done when:** Page displays a table of large emails after scanning.
+
+---
+
+### Iteration 8 — Loading & Error States
+
+**Goal:** Handle loading and errors gracefully in the UI.
+
+- Loading spinner/skeleton while scanning
+- Error banner if API call fails or user is not authenticated
+- Empty state if no results found
+
+**Done when:** All three states (loading, error, empty) render correctly.
 
 ---
 
@@ -123,11 +117,11 @@ Developers and tech-savvy users comfortable with CLI tools who want to clean up 
 
 **Goal:** Find promotional emails.
 
-- `clean-gmail scan --promotions` uses query `category:promotions`
-- Reuse same table formatter from iteration 8
+- Add "Promotions" tab/filter using query `category:promotions`
+- Reuse same table component from iteration 7
 - Show count + total size
 
-**Done when:** Command lists promotional emails in a table.
+**Done when:** Promotions tab lists promotional emails.
 
 ---
 
@@ -135,9 +129,9 @@ Developers and tech-savvy users comfortable with CLI tools who want to clean up 
 
 **Goal:** Find social notification emails.
 
-- `clean-gmail scan --social` uses query `category:social`
+- Add "Social" tab/filter using query `category:social`
 
-**Done when:** Command lists social emails in a table.
+**Done when:** Social tab lists social emails.
 
 ---
 
@@ -145,150 +139,150 @@ Developers and tech-savvy users comfortable with CLI tools who want to clean up 
 
 **Goal:** Find emails older than a threshold.
 
-- `clean-gmail scan --older-than 2y`
-- Parse duration strings: `6m`, `1y`, `2y`, `30d`
+- Add age filter dropdown: 6 months, 1 year, 2 years, 5 years
 - Use Gmail query `older_than:2y`
 
-**Done when:** `--older-than 1y` returns emails older than 1 year.
+**Done when:** Selecting "Older than 1 year" shows matching emails.
 
 ---
 
-### Iteration 12 — Cache Scan Results
+### Iteration 12 — Scan Summary Dashboard
 
-**Goal:** Save scan results locally to avoid re-fetching.
+**Goal:** Visual overview of cleanup potential.
 
-- Save metadata to `~/.clean-gmail/cache.json` after each scan
-- On next scan, reuse cache if <1 hour old
-- `--fresh` flag bypasses cache
+- Dashboard cards showing: large emails (count/size), promotions (count/size), social (count/size), old emails (count/size)
+- Each card links to its detail table
 
-**Done when:** Second scan is instant. `--fresh` hits the API.
+**Done when:** Dashboard shows all category summaries at a glance.
 
 ---
 
-### Iteration 13 — Top Senders Report
+### Iteration 13 — Cache Scan Results
+
+**Goal:** Avoid repeated API calls by caching in the browser.
+
+- Store scan metadata in localStorage/IndexedDB
+- Reuse cache if <1 hour old
+- "Rescan" button forces a fresh API call
+
+**Done when:** Second page load shows results instantly. "Rescan" fetches fresh data.
+
+---
+
+### Iteration 14 — Top Senders Report
 
 **Goal:** Rank senders by space used.
 
-- `clean-gmail top-senders` aggregates cached data by sender
+- "Top Senders" view aggregating cached data by sender
 - Display: sender, email count, total size
 - Top 20, sorted by size descending
 
-**Done when:** Command prints ranked sender table.
+**Done when:** Page shows a ranked list of top senders.
 
 ---
 
-### Iteration 14 — Recommendations
+### Iteration 15 — Recommendations
 
 **Goal:** Suggest cleanup actions ranked by impact.
 
-- `clean-gmail recommend` analyzes cached data
-- Output actions like: "Delete 342 promotions — 128MB"
+- "Recommendations" view analyzing cached data
+- Show actions like: "Delete 342 promotions — 128MB"
 - Sorted by space saved descending
 
-**Done when:** Command prints ranked recommendations.
+**Done when:** Page shows ranked cleanup recommendations.
 
 ---
 
-### Iteration 15 — Delete Dry-Run
+### Iteration 16 — Select Emails for Deletion
 
-**Goal:** Preview what would be trashed.
+**Goal:** Let users pick which emails to delete.
 
-- `clean-gmail delete --sender "x@example.com"` — dry-run by default
-- `clean-gmail delete --category promotions` — dry-run by default
-- Print list + total size, with "DRY RUN" banner
+- Checkboxes on email rows (select individual or select all in category)
+- "Select all from sender" option
+- Running total of selected size shown
 
-**Done when:** Command shows what would be deleted, changes nothing.
+**Done when:** User can select emails and see the total size to be freed.
 
 ---
 
-### Iteration 16 — Delete Execute
+### Iteration 17 — Delete Preview
 
-**Goal:** Actually trash emails.
+**Goal:** Confirm before trashing.
 
-- `--confirm` flag enables real deletion
+- "Delete Selected" button opens a confirmation modal
+- Modal shows: count, total size, list of senders affected
+- "Cancel" and "Confirm Delete" buttons
+
+**Done when:** Modal appears with correct summary. Cancel closes it without changes.
+
+---
+
+### Iteration 18 — Delete Execute
+
+**Goal:** Actually trash selected emails.
+
+- On confirm, batch `gmail.users.messages.trash` calls
 - Add `gmail.modify` scope (re-auth if needed)
-- Batch `gmail.users.messages.trash` calls
-- Log deleted IDs to `~/.clean-gmail/last-delete.json`
+- Show progress during deletion
+- Save deleted IDs to localStorage for undo
 
-**Done when:** Emails move to Trash. Log file is saved.
-
----
-
-### Iteration 17 — Undo
-
-**Goal:** Un-trash the last deletion batch.
-
-- `clean-gmail undo` reads `last-delete.json`
-- Calls `gmail.users.messages.untrash` for each ID
-
-**Done when:** Emails restored from Trash. Graceful error if nothing to undo.
+**Done when:** Emails move to Trash. Success message shown.
 
 ---
 
-### Iteration 18 — Config File
+### Iteration 19 — Undo Last Delete
 
-**Goal:** User-configurable defaults.
+**Goal:** Recover from accidental deletions.
 
-- Load `~/.clean-gmail/config.json` on startup
-- Configurable: `sizeThreshold`, `ageThreshold`
-- `clean-gmail config --show` prints current config
+- "Undo" toast/banner appears after deletion for 30 seconds
+- Calls `gmail.users.messages.untrash` for each deleted ID
 
-**Done when:** Config values override default thresholds.
-
----
-
-### Iteration 19 — Whitelist
-
-**Goal:** Protect senders from deletion.
-
-- Add `whitelist` array to config (emails/domains)
-- Whitelisted senders excluded from scan, recommend, and delete
-
-**Done when:** Whitelisted sender never appears in any output.
+**Done when:** Clicking undo restores emails from Trash.
 
 ---
 
-### Iteration 20 — Progress Bar
+### Iteration 20 — Whitelist Senders
 
-**Goal:** Show progress during long scans.
+**Goal:** Protect senders from deletion suggestions.
 
-- Install `cli-progress`
-- Show bar when fetching >50 messages
-- Update as batches complete
+- "Whitelist" button on sender rows / top senders
+- Whitelisted senders stored in localStorage
+- Excluded from recommendations and scan results
 
-**Done when:** Scan shows a progress bar that fills to 100%.
-
----
-
-### Iteration 21 — JSON/CSV Export
-
-**Goal:** Export results for external analysis.
-
-- `clean-gmail export --json` / `--csv`
-- Export from cached scan data
-
-**Done when:** Valid JSON/CSV files are written to disk.
+**Done when:** Whitelisted sender never appears in any results.
 
 ---
 
-### Iteration 22 — Verbose & Quiet Modes
+### Iteration 21 — Settings Page
 
-**Goal:** Control output verbosity.
+**Goal:** User-configurable thresholds.
 
-- `--verbose` shows API call details, timing
-- `--quiet` shows only final summary line
+- Settings page with: size threshold, age threshold, whitelisted senders list
+- Persist to localStorage
+- Applied to all scans and recommendations
 
-**Done when:** Both flags work across all commands.
+**Done when:** Changing size threshold updates scan results.
+
+---
+
+### Iteration 22 — Export Results
+
+**Goal:** Download scan data for external analysis.
+
+- "Export" button on any results view
+- Export as JSON or CSV
+- Includes all visible metadata
+
+**Done when:** Clicking export downloads a valid JSON/CSV file.
 
 ---
 
 ## Non-Goals (Out of Scope)
 
-- Web UI or desktop app (CLI only)
-- Multi-account management in a single run
+- Multi-account management in a single session
 - Permanent deletion (always Trash first)
 - Modifying email content or labels (read + delete only)
-- Real-time monitoring or scheduled runs (manual trigger only)
+- Real-time monitoring or scheduled cleanup
 
 ## API Quotas & Limits
 
@@ -298,7 +292,7 @@ Developers and tech-savvy users comfortable with CLI tools who want to clean up 
 
 ## Security Considerations
 
-- OAuth2 tokens stored locally with restricted file permissions (600)
+- OAuth2 tokens handled securely (never exposed in URLs or logs)
 - No email content is stored — only metadata (sender, size, date, labels)
 - Credentials never logged or transmitted beyond Google's OAuth flow
 - Google Cloud project uses minimum required scopes:
