@@ -20,11 +20,22 @@ Anyone who wants to clean up their Gmail storage efficiently through a simple, v
 
 **Goal:** Empty project that compiles and serves a blank page.
 
-- Initialize project with package manager and TypeScript
-- Create basic project structure (`src/`, config files)
+- Initialize Next.js 16.1 project with pnpm 10.x and TypeScript 5.x (strict mode)
+- Configure TypeScript with strict flags: `noUncheckedIndexedAccess`, `noImplicitReturns`, `noFallthroughCasesInSwitch`, `exactOptionalPropertyTypes`, `forceConsistentCasingInFileNames`
+- Install and configure Tailwind CSS 4.x + DaisyUI 5.x
+- Set up ESLint 9.x (flat config) + Prettier + typescript-eslint + eslint-plugin-import + eslint-plugin-boundaries
+- Configure Husky + lint-staged for pre-commit hooks
+- Install and configure Vitest 3.x + Playwright 1.49.x
+- Create Clean Architecture folder structure under `src/`:
+  - `domain/` (entities, value-objects, repositories, services, errors)
+  - `application/` (use-cases, dtos, ports)
+  - `infrastructure/` (persistence, gmail, auth, di)
+  - `presentation/` (app, components, hooks)
+  - `shared/` (types, utils)
+- Set up eslint-plugin-boundaries rules to enforce the dependency rule (Domain ← Application ← Presentation, Domain ← Infrastructure)
 - Dev server runs and serves a blank page
 
-**Done when:** `npm run dev` opens a blank page in the browser.
+**Done when:** `pnpm dev` opens a blank page in the browser. `pnpm lint`, `pnpm format`, and `pnpm test` all pass. Pre-commit hook runs lint-staged successfully.
 
 ---
 
