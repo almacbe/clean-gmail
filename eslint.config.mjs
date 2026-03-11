@@ -19,7 +19,7 @@ const eslintConfig = defineConfig([
         { type: 'application', pattern: ['src/application/**'], mode: 'full' },
         {
           type: 'infrastructure',
-          pattern: ['src/infrastructure/**'],
+          pattern: ['src/infrastructure/**', 'src/app/api/**'],
           mode: 'full',
         },
         {
