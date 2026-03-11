@@ -99,6 +99,20 @@ Presentation   → E2E tests (Playwright)
 - **No third-party calls in application tests** — mock all ports (DB, Gmail, etc.)
 - **Infrastructure integration tests hit the real external service** — use test containers or sandbox APIs
 
+## Iteration Completion Checklist
+
+After implementing each iteration, you MUST complete every step below before committing:
+
+1. `pnpm test` — all tests pass
+2. `pnpm lint` — zero errors
+3. `pnpm format` — formatting applied
+4. **Browser smoke test using the Chrome extension:**
+   - Start `pnpm dev` if not already running
+   - Use `mcp__claude-in-chrome__*` tools to verify **every "Done when" criterion** from the iteration plan in the actual running app
+   - Each criterion must be tested explicitly — navigate to the relevant URL, interact with the UI, assert the outcome
+   - Record a GIF of the full smoke test using `mcp__claude-in-chrome__gif_creator`
+5. Commit only after all of the above pass
+
 ## Iteration Plan
 
 22 micro-iterations defined in `docs/PRD.md`. Current status: **Pre-iteration 1** (project not yet initialized).

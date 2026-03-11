@@ -63,7 +63,7 @@ Anyone who wants to clean up their Gmail storage efficiently through a simple, v
 
 ---
 
-### Iteration 4 — Persist Auth Session
+### Iteration 4 — Persist Auth Session ✅
 
 **Goal:** Save tokens and keep the user logged in.
 

@@ -25,6 +25,15 @@ describe('Auth configuration', () => {
     const { authConfig } = await import('@/infrastructure/auth/auth.config');
     expect(authConfig.providers.length).toBeGreaterThanOrEqual(1);
   });
+
+  it('Google provider authorization params include gmail.readonly scope', async () => {
+    const { authConfig } = await import('@/infrastructure/auth/auth.config');
+    const google = authConfig.providers[0] as {
+      options?: { authorization?: { params?: { scope?: string } } };
+    };
+    const scope = google?.options?.authorization?.params?.scope ?? '';
+    expect(scope).toContain('https://www.googleapis.com/auth/gmail.readonly');
+  });
 });
 
 describe('Auth exports', () => {
