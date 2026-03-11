@@ -21,9 +21,17 @@ test.describe('Landing Page', () => {
     ).toBeVisible();
   });
 
-  test('sign-in button does not navigate away', async ({ page }) => {
-    await page.getByRole('button', { name: 'Sign in with Google' }).click();
-    await expect(page).toHaveURL('/');
+  test('sign-in button triggers auth flow', async ({ page }) => {
+    await page.route('**/api/auth/**', (route) => {
+      route.fulfill({ status: 200, body: '{}' });
+    });
+
+    const [request] = await Promise.all([
+      page.waitForRequest((req) => req.url().includes('/api/auth/')),
+      page.getByRole('button', { name: 'Sign in with Google' }).click(),
+    ]);
+
+    expect(request.url()).toContain('/api/auth/');
   });
 
   test('is responsive at mobile viewport', async ({ page }) => {
