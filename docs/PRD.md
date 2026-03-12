@@ -63,7 +63,7 @@ Anyone who wants to clean up their Gmail storage efficiently through a simple, v
 
 ---
 
-### Iteration 4 — Persist Auth Session
+### Iteration 4 — Persist Auth Session ✅
 
 **Goal:** Save tokens and keep the user logged in.
 
@@ -76,7 +76,7 @@ Anyone who wants to clean up their Gmail storage efficiently through a simple, v
 
 ---
 
-### Iteration 5 — Account Status View
+### Iteration 5 — Account Status View ✅
 
 **Goal:** Show basic account info after login.
 
@@ -88,7 +88,7 @@ Anyone who wants to clean up their Gmail storage efficiently through a simple, v
 
 ---
 
-### Iteration 6 — Scan Large Emails (API)
+### Iteration 6 — Scan Large Emails (API) ✅
 
 **Goal:** Query Gmail for large emails and return metadata.
 

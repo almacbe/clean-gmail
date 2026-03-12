@@ -82,11 +82,36 @@ pnpm test:e2e     # Run Playwright E2E tests
 ## Testing Strategy
 
 ```
-Domain       → Unit tests (pure logic, no mocks)
-Application  → Unit tests (mock repository/port interfaces)
-Infrastructure → Integration tests (real DB)
-Presentation → E2E tests (Playwright)
+Application    → Unit tests (mock ports/repos — this is the PRIMARY test layer)
+Domain         → Unit tests ONLY for value objects and domain services
+                 Skip if already covered by application-layer tests
+Infrastructure → Integration tests ONLY (request params, response shape, connectivity)
+                 Do NOT duplicate use-case logic — test the adapter, not the business rules
+Presentation   → E2E tests (Playwright)
 ```
+
+### Testing Rules
+
+- **Application layer is the main test surface** — all use-case logic is tested here with mocked ports
+- **Avoid duplicate tests** — if a domain entity behavior is exercised by a use-case test, don't add a separate domain test
+- **Domain tests are reserved for** value objects (validation, equality) and domain services (pure logic not invoked by a single use case)
+- **Infrastructure tests verify integration only** — correct HTTP params sent, responses parsed, DB queries run, app boots. Never re-test use-case branches
+- **No third-party calls in application tests** — mock all ports (DB, Gmail, etc.)
+- **Infrastructure integration tests hit the real external service** — use test containers or sandbox APIs
+
+## Iteration Completion Checklist
+
+After implementing each iteration, you MUST complete every step below before committing:
+
+1. `pnpm test` — all tests pass
+2. `pnpm lint` — zero errors
+3. `pnpm format` — formatting applied
+4. **Browser smoke test using the Chrome extension:**
+   - Start `pnpm dev` if not already running
+   - Use `mcp__claude-in-chrome__*` tools to verify **every "Done when" criterion** from the iteration plan in the actual running app
+   - Each criterion must be tested explicitly — navigate to the relevant URL, interact with the UI, assert the outcome
+   - Record a GIF of the full smoke test using `mcp__claude-in-chrome__gif_creator`
+5. Commit only after all of the above pass
 
 ## Iteration Plan
 

@@ -8,69 +8,79 @@ Full-stack web application that connects to the Gmail API, built with **Clean Ar
 
 ## Core Stack
 
-| Category | Technology | Version |
-|---|---|---|
-| **Framework** | Next.js (App Router) | 16.1.x |
-| **Language** | TypeScript | 5.x (strict mode) |
-| **Runtime** | Node.js | 22.x LTS |
-| **Package Manager** | pnpm | 10.x |
+| Category            | Technology           | Version           |
+| ------------------- | -------------------- | ----------------- |
+| **Framework**       | Next.js (App Router) | 16.1.x            |
+| **Language**        | TypeScript           | 5.x (strict mode) |
+| **Runtime**         | Node.js              | 22.x LTS          |
+| **Package Manager** | pnpm                 | 10.x              |
 
 ---
 
 ## Frontend
 
-| Category | Technology | Purpose |
-|---|---|---|
-| **Styling** | Tailwind CSS 4.x | Utility-first CSS |
-| **Components** | DaisyUI 5.x | Tailwind component plugin (themes, pre-built components) |
-| **State (server)** | React Server Components | Server-side data fetching, no client JS |
-| **State (client)** | TanStack React Query 5.x | Client-side caching, mutations, background refetching |
+| Category           | Technology               | Purpose                                                  |
+| ------------------ | ------------------------ | -------------------------------------------------------- |
+| **Styling**        | Tailwind CSS 4.x         | Utility-first CSS                                        |
+| **Components**     | DaisyUI 5.x              | Tailwind component plugin (themes, pre-built components) |
+| **State (server)** | React Server Components  | Server-side data fetching, no client JS                  |
+| **State (client)** | TanStack React Query 5.x | Client-side caching, mutations, background refetching    |
 
 ---
 
 ## Backend & Data
 
-| Category | Technology | Purpose |
-|---|---|---|
-| **API** | Next.js App Router (Route Handlers + Server Actions) | API endpoints and server mutations |
-| **Database** | PostgreSQL 16.x | Relational data persistence |
-| **ORM** | Prisma 6.x | Type-safe DB access, migrations, schema management |
-| **Authentication** | NextAuth.js (Auth.js) v5 | OAuth 2.0 with Google provider |
-| **Gmail Integration** | Google APIs Node.js Client (`googleapis`) | Gmail API access via OAuth tokens |
+| Category              | Technology                                           | Purpose                                            |
+| --------------------- | ---------------------------------------------------- | -------------------------------------------------- |
+| **API**               | Next.js App Router (Route Handlers + Server Actions) | API endpoints and server mutations                 |
+| **Database**          | PostgreSQL 16.x                                      | Relational data persistence                        |
+| **ORM**               | Prisma 6.x                                           | Type-safe DB access, migrations, schema management |
+| **Authentication**    | NextAuth.js (Auth.js) v5                             | OAuth 2.0 with Google provider                     |
+| **Gmail Integration** | Google APIs Node.js Client (`googleapis`)            | Gmail API access via OAuth tokens                  |
 
 ---
 
 ## Code Quality & Linting
 
-| Tool | Purpose |
-|---|---|
-| **ESLint 9.x** (flat config) | Static analysis, code quality rules |
-| **Prettier** | Opinionated code formatting |
-| **typescript-eslint** | TypeScript-specific lint rules |
-| **eslint-plugin-import** | Enforce import order and prevent circular dependencies |
+| Tool                         | Purpose                                                                                          |
+| ---------------------------- | ------------------------------------------------------------------------------------------------ |
+| **ESLint 9.x** (flat config) | Static analysis, code quality rules                                                              |
+| **Prettier**                 | Opinionated code formatting                                                                      |
+| **typescript-eslint**        | TypeScript-specific lint rules                                                                   |
+| **eslint-plugin-import**     | Enforce import order and prevent circular dependencies                                           |
 | **eslint-plugin-boundaries** | **Enforce Clean Architecture layer boundaries** (domain cannot import from infrastructure, etc.) |
-| **Husky** | Git hooks (run linting/tests on pre-commit) |
-| **lint-staged** | Run linters only on staged files for fast feedback |
+| **Husky**                    | Git hooks (run linting/tests on pre-commit)                                                      |
+| **lint-staged**              | Run linters only on staged files for fast feedback                                               |
 
 ---
 
 ## Testing
 
-| Layer | Tool | Scope |
-|---|---|---|
-| **Unit tests** | Vitest | Domain entities, value objects, application use cases |
-| **Integration tests** | Vitest | Repositories, API routes, services with DB |
-| **E2E tests** | Playwright | Full user flows through the browser |
-| **Coverage** | Vitest (v8 provider) | Coverage reporting with thresholds |
+| Layer                 | Tool                 | Scope                                                 |
+| --------------------- | -------------------- | ----------------------------------------------------- |
+| **Unit tests**        | Vitest               | Domain entities, value objects, application use cases |
+| **Integration tests** | Vitest               | Repositories, API routes, services with DB            |
+| **E2E tests**         | Playwright           | Full user flows through the browser                   |
+| **Coverage**          | Vitest (v8 provider) | Coverage reporting with thresholds                    |
 
 ### Testing Strategy by Architecture Layer
 
 ```
-Domain Layer       → Unit tests (pure logic, no mocks needed)
-Application Layer  → Unit tests (mock repository interfaces)
-Infrastructure     → Integration tests (real DB via test containers)
+Application Layer  → Unit tests (mock ports/repos) — PRIMARY test layer for all use-case logic
+Domain Layer       → Unit tests ONLY for value objects and domain services
+                     Skip if behavior is already covered by application-layer tests
+Infrastructure     → Integration tests ONLY (verify request params, response parsing, connectivity)
+                     Do NOT re-test use-case logic here — test the adapter, not the business rules
 Presentation       → E2E tests (Playwright)
 ```
+
+**Key principles:**
+
+- The application layer is the main test surface — all business logic branches are tested here
+- Avoid duplicate tests across layers; if a domain behavior is exercised by an application test, no separate domain test is needed
+- Application tests mock all external dependencies (DB, Gmail API) via port interfaces
+- Infrastructure tests hit real external services (test containers, sandbox APIs) but only verify integration concerns: correct parameters sent, responses parsed, service reachable
+- Domain tests are reserved for value objects (validation, equality, immutability) and domain services with pure logic not tied to a single use case
 
 ---
 
@@ -148,6 +158,7 @@ Presentation → Application → Domain ← Infrastructure
 - **Presentation** orchestrates use cases from Application
 
 This is enforced at two levels:
+
 1. **eslint-plugin-boundaries** — lint-time errors if layers violate the dependency rule
 2. **pnpm strict mode** — prevents phantom dependencies
 
@@ -155,13 +166,13 @@ This is enforced at two levels:
 
 ## SOLID Principles Mapping
 
-| Principle | How It's Applied |
-|---|---|
-| **S** — Single Responsibility | Each use case does one thing. Entities encapsulate one concept. |
-| **O** — Open/Closed | Use cases are extended by creating new ones, not modifying existing. Repository interfaces allow new implementations. |
-| **L** — Liskov Substitution | Gmail adapter and any future email provider implement the same `EmailProvider` port interface. |
-| **I** — Interface Segregation | Small, focused interfaces (e.g., `EmailReader`, `EmailDeleter` instead of one large `EmailService`). |
-| **D** — Dependency Inversion | Domain defines interfaces (ports). Infrastructure provides implementations (adapters). Wired via DI container. |
+| Principle                     | How It's Applied                                                                                                      |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| **S** — Single Responsibility | Each use case does one thing. Entities encapsulate one concept.                                                       |
+| **O** — Open/Closed           | Use cases are extended by creating new ones, not modifying existing. Repository interfaces allow new implementations. |
+| **L** — Liskov Substitution   | Gmail adapter and any future email provider implement the same `EmailProvider` port interface.                        |
+| **I** — Interface Segregation | Small, focused interfaces (e.g., `EmailReader`, `EmailDeleter` instead of one large `EmailService`).                  |
+| **D** — Dependency Inversion  | Domain defines interfaces (ports). Infrastructure provides implementations (adapters). Wired via DI container.        |
 
 ---
 
@@ -205,8 +216,8 @@ Strict mode enabled with additional safety flags:
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "exactOptionalPropertyTypes": true,
-    "forceConsistentCasingInFileNames": true
-  }
+    "forceConsistentCasingInFileNames": true,
+  },
 }
 ```
 
@@ -232,7 +243,7 @@ Strict mode enabled with additional safety flags:
 
   // Auth & Gmail
   "next-auth": "^5.0.0",
-  "googleapis": "^144.0.0",
+  "googleapis": "^171.0.0",
 
   // Dev / Quality
   "eslint": "^9.0.0",
@@ -243,7 +254,7 @@ Strict mode enabled with additional safety flags:
 
   // Testing
   "vitest": "^3.0.0",
-  "@playwright/test": "^1.49.0"
+  "@playwright/test": "^1.49.0",
 }
 ```
 
