@@ -100,7 +100,7 @@ Anyone who wants to clean up their Gmail storage efficiently through a simple, v
 
 ---
 
-### Iteration 7 — Display Large Emails Table
+### ✅ Iteration 7 — Display Large Emails Table
 
 **Goal:** Show large emails in a UI table.
 

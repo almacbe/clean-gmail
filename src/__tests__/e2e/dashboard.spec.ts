@@ -6,13 +6,22 @@ const MOCK_ACCOUNT_STATUS = {
   threadsTotal: 5678,
 };
 
-// Helper: mock the account-status API and mock auth session
+const MOCK_SCAN_RESPONSE = { emails: [] };
+
+// Helper: mock both API routes and auth session
 async function setupAuthenticatedDashboard(
   page: Parameters<Parameters<typeof test>[1]>[0],
   {
     statusCode = 200,
     responseBody = MOCK_ACCOUNT_STATUS,
-  }: { statusCode?: number; responseBody?: object } = {},
+    scanStatusCode = 200,
+    scanResponseBody = MOCK_SCAN_RESPONSE,
+  }: {
+    statusCode?: number;
+    responseBody?: object;
+    scanStatusCode?: number;
+    scanResponseBody?: object;
+  } = {},
 ) {
   // Mock the account-status API route
   await page.route('**/api/account-status', (route) => {
@@ -20,6 +29,15 @@ async function setupAuthenticatedDashboard(
       status: statusCode,
       contentType: 'application/json',
       body: JSON.stringify(responseBody),
+    });
+  });
+
+  // Mock the scan/large-emails API route
+  await page.route('**/api/scan/large-emails', (route) => {
+    route.fulfill({
+      status: scanStatusCode,
+      contentType: 'application/json',
+      body: JSON.stringify(scanResponseBody),
     });
   });
 

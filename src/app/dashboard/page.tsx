@@ -4,10 +4,16 @@ import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 import { Header } from '@/presentation/components/ui/Header';
 import { AccountStats } from '@/presentation/components/features/AccountStats';
+import { LargeEmailsTable } from '@/presentation/components/features/LargeEmailsTable';
 import type { GetAccountStatusOutput } from '@/application/dtos/GetAccountStatusOutput';
+import type { ScanLargeEmailsOutput } from '@/application/dtos/ScanLargeEmailsOutput';
 
 type AccountStatusResponse =
   | (GetAccountStatusOutput & { error?: never })
+  | { error: string };
+
+type ScanResponse =
+  | (ScanLargeEmailsOutput & { error?: never })
   | { error: string };
 
 export default async function DashboardPage() {
@@ -22,16 +28,30 @@ export default async function DashboardPage() {
   const cookie = incomingHeaders.get('cookie') ?? '';
 
   const baseUrl = process.env.NEXTAUTH_URL ?? 'http://localhost:3000';
-  const response = await fetch(`${baseUrl}/api/account-status`, {
-    headers: { cookie },
-    cache: 'no-store',
-  });
+
+  const [accountResponse, scanResponse] = await Promise.all([
+    fetch(`${baseUrl}/api/account-status`, {
+      headers: { cookie },
+      cache: 'no-store',
+    }),
+    fetch(`${baseUrl}/api/scan/large-emails`, {
+      headers: { cookie },
+      cache: 'no-store',
+    }),
+  ]);
 
   let accountData: AccountStatusResponse;
-  if (!response.ok) {
+  if (!accountResponse.ok) {
     accountData = { error: 'Failed to fetch account status' };
   } else {
-    accountData = (await response.json()) as AccountStatusResponse;
+    accountData = (await accountResponse.json()) as AccountStatusResponse;
+  }
+
+  let scanData: ScanResponse;
+  if (!scanResponse.ok) {
+    scanData = { error: 'Failed to scan emails' };
+  } else {
+    scanData = (await scanResponse.json()) as ScanResponse;
   }
 
   const email = session.user?.email ?? '';
@@ -55,6 +75,12 @@ export default async function DashboardPage() {
             }
             threadsTotal={(accountData as GetAccountStatusOutput).threadsTotal}
           />
+        )}
+        {'emails' in scanData && (
+          <div className="p-6 max-w-4xl mx-auto">
+            <h2 className="text-xl font-bold mb-4">Large Emails (&gt;5 MB)</h2>
+            <LargeEmailsTable emails={scanData.emails} />
+          </div>
         )}
       </main>
     </div>
