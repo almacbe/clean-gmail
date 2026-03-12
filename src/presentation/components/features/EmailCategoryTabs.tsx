@@ -9,20 +9,31 @@ import { SocialTable } from '@/presentation/components/features/SocialTable';
 
 type ScanResult = { emails: EmailMetadataDto[] } | { error: string };
 
+export type TabId = 'large-emails' | 'promotions' | 'social' | 'old-emails';
+
 type EmailCategoryTabsProps = {
   largeEmails: ScanResult;
   promotions: ScanResult;
   social: ScanResult;
+  activeTab?: TabId;
+  onTabChange?: (tab: TabId) => void;
 };
-
-type TabId = 'large-emails' | 'promotions' | 'social' | 'old-emails';
 
 export function EmailCategoryTabs({
   largeEmails,
   promotions,
   social,
+  activeTab: controlledActiveTab,
+  onTabChange,
 }: EmailCategoryTabsProps) {
-  const [activeTab, setActiveTab] = useState<TabId>('large-emails');
+  const [internalActiveTab, setInternalActiveTab] =
+    useState<TabId>('large-emails');
+
+  const activeTab = controlledActiveTab ?? internalActiveTab;
+  const setActiveTab = (tab: TabId) => {
+    setInternalActiveTab(tab);
+    onTabChange?.(tab);
+  };
 
   return (
     <div>

@@ -132,6 +132,20 @@ async function setupDashboard(
     });
   });
 
+  // Mock the scan/summary API route
+  await page.route('**/api/scan/summary**', (route) => {
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        largeEmails: { count: 0, totalSizeBytes: 0 },
+        promotions: { count: 0, totalSizeBytes: 0 },
+        social: { count: 0, totalSizeBytes: 0 },
+        oldEmails: { count: 0, totalSizeBytes: 0 },
+      }),
+    });
+  });
+
   await setAuthCookie(page);
 }
 
