@@ -42,6 +42,15 @@ async function setupAuthenticatedDashboard(
     });
   });
 
+  // Mock the scan/promotions API route
+  await page.route('**/api/scan/promotions', (route) => {
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ emails: [] }),
+    });
+  });
+
   // Set a real NextAuth session cookie so server-side auth() treats the request as authenticated
   await setAuthCookie(page);
 }
