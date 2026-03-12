@@ -44,6 +44,13 @@ export function DashboardClient() {
         >
           Top Senders
         </Link>
+        <Link
+          href="/dashboard/recommendations"
+          className="btn btn-ghost btn-sm"
+          data-testid="recommendations-link"
+        >
+          Recommendations
+        </Link>
         <button
           data-testid="rescan-button"
           className="btn btn-primary btn-sm"
