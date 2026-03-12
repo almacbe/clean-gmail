@@ -168,7 +168,7 @@ Anyone who wants to clean up their Gmail storage efficiently through a simple, v
 
 ---
 
-### Iteration 13 — Cache Scan Results
+### ✅ Iteration 13 — Cache Scan Results
 
 **Goal:** Avoid repeated API calls by caching in the browser.
 
@@ -309,3 +309,7 @@ Anyone who wants to clean up their Gmail storage efficiently through a simple, v
 - Google Cloud project uses minimum required scopes:
   - `gmail.readonly` for scanning
   - `gmail.modify` for trash operations
+
+## Future Work
+
+- **Remove the 500-email scan cap**: All adapters (Large Emails, Promotions, Social, Old Emails) are currently capped at 500 results (`MAX_PAGES = 5 × 100`). This was set to avoid API quota pressure during early iterations. A future iteration should implement full pagination — either by removing the cap with proper rate-limit handling, or by surfacing a "load more" / cursor-based UX so users can scan beyond the first 500 results.

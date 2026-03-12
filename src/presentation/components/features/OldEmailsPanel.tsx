@@ -5,9 +5,13 @@ import type { AgeThreshold } from '@/application/dtos/ScanOldEmailsInput';
 import { useOldEmailsScan } from '@/presentation/hooks/useOldEmailsScan';
 import { OldEmailsTable } from '@/presentation/components/features/OldEmailsTable';
 
-export function OldEmailsPanel() {
+type OldEmailsPanelProps = {
+  refreshKey?: number;
+};
+
+export function OldEmailsPanel({ refreshKey = 0 }: OldEmailsPanelProps) {
   const [olderThan, setOlderThan] = useState<AgeThreshold>('1y');
-  const result = useOldEmailsScan(olderThan);
+  const result = useOldEmailsScan(olderThan, refreshKey);
 
   return (
     <div data-testid="panel-old-emails">

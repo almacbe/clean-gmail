@@ -1,30 +1,23 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import type { AgeThreshold } from '@/application/dtos/ScanOldEmailsInput';
 import type { ScanEmailsOutput } from '@/application/dtos/ScanLargeEmailsOutput';
 import { readCache, writeCache, CACHE_KEYS } from '@/shared/utils/scanCache';
 
-type UseOldEmailsScanResult =
+export type ScanHookResult =
   | { status: 'loading' }
   | { status: 'error'; message: string }
   | { status: 'success'; data: ScanEmailsOutput };
 
-export function useOldEmailsScan(
-  olderThan: AgeThreshold,
-  refreshKey = 0,
-): UseOldEmailsScanResult {
-  const [result, setResult] = useState<UseOldEmailsScanResult>({
-    status: 'loading',
-  });
+export function useLargeEmailsScan(refreshKey = 0): ScanHookResult {
+  const [result, setResult] = useState<ScanHookResult>({ status: 'loading' });
 
   useEffect(
-    function fetchOldEmails() {
+    function fetchLargeEmails() {
       let cancelled = false;
 
       async function run() {
-        const cacheKey = CACHE_KEYS.oldEmails(olderThan);
-        const cached = readCache<ScanEmailsOutput>(cacheKey);
+        const cached = readCache<ScanEmailsOutput>(CACHE_KEYS.LARGE_EMAILS);
         if (cached) {
           if (!cancelled) setResult({ status: 'success', data: cached });
           return;
@@ -33,9 +26,7 @@ export function useOldEmailsScan(
         if (!cancelled) setResult({ status: 'loading' });
 
         try {
-          const res = await fetch(
-            `/api/scan/old-emails?olderThan=${olderThan}`,
-          );
+          const res = await fetch('/api/scan/large-emails');
           if (!res.ok) {
             const body = (await res.json().catch(() => ({}))) as {
               error?: string;
@@ -43,20 +34,22 @@ export function useOldEmailsScan(
             if (!cancelled) {
               setResult({
                 status: 'error',
-                message: body.error ?? 'Failed to scan old emails',
+                message: body.error ?? 'Failed to scan large emails',
               });
             }
             return;
           }
           const data = (await res.json()) as ScanEmailsOutput;
-          writeCache(cacheKey, data);
+          writeCache(CACHE_KEYS.LARGE_EMAILS, data);
           if (!cancelled) {
             setResult({ status: 'success', data });
           }
         } catch (err: unknown) {
           if (!cancelled) {
             const message =
-              err instanceof Error ? err.message : 'Failed to scan old emails';
+              err instanceof Error
+                ? err.message
+                : 'Failed to scan large emails';
             setResult({ status: 'error', message });
           }
         }
@@ -66,10 +59,9 @@ export function useOldEmailsScan(
 
       return () => {
         cancelled = true;
-        setResult({ status: 'loading' });
       };
     },
-    [olderThan, refreshKey],
+    [refreshKey],
   );
 
   return result;

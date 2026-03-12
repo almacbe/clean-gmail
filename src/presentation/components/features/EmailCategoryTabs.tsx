@@ -7,22 +7,67 @@ import { OldEmailsPanel } from '@/presentation/components/features/OldEmailsPane
 import { PromotionsTable } from '@/presentation/components/features/PromotionsTable';
 import { SocialTable } from '@/presentation/components/features/SocialTable';
 
-type ScanResult = { emails: EmailMetadataDto[] } | { error: string };
+type ScanHookResult =
+  | { status: 'loading' }
+  | { status: 'error'; message: string }
+  | { status: 'success'; data: { emails: EmailMetadataDto[] } };
+
+export type TabId = 'large-emails' | 'promotions' | 'social' | 'old-emails';
 
 type EmailCategoryTabsProps = {
-  largeEmails: ScanResult;
-  promotions: ScanResult;
-  social: ScanResult;
+  largeEmails: ScanHookResult;
+  promotions: ScanHookResult;
+  social: ScanHookResult;
+  activeTab?: TabId;
+  onTabChange?: (tab: TabId) => void;
+  refreshKey?: number;
 };
 
-type TabId = 'large-emails' | 'promotions' | 'social' | 'old-emails';
+function TableSkeleton() {
+  return (
+    <div className="overflow-x-auto">
+      <table className="table w-full">
+        <thead>
+          <tr>
+            {[...Array(4)].map((_, i) => (
+              <th key={i}>
+                <div className="skeleton h-4 w-20"></div>
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {[...Array(5)].map((_, i) => (
+            <tr key={i}>
+              {[...Array(4)].map((_, j) => (
+                <td key={j}>
+                  <div className="skeleton h-4 w-full"></div>
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
 
 export function EmailCategoryTabs({
   largeEmails,
   promotions,
   social,
+  activeTab: controlledActiveTab,
+  onTabChange,
+  refreshKey = 0,
 }: EmailCategoryTabsProps) {
-  const [activeTab, setActiveTab] = useState<TabId>('large-emails');
+  const [internalActiveTab, setInternalActiveTab] =
+    useState<TabId>('large-emails');
+
+  const activeTab = controlledActiveTab ?? internalActiveTab;
+  const setActiveTab = (tab: TabId) => {
+    setInternalActiveTab(tab);
+    onTabChange?.(tab);
+  };
 
   return (
     <div>
@@ -63,7 +108,8 @@ export function EmailCategoryTabs({
 
       {activeTab === 'large-emails' && (
         <div data-testid="panel-large-emails">
-          {'error' in largeEmails ? (
+          {largeEmails.status === 'loading' && <TableSkeleton />}
+          {largeEmails.status === 'error' && (
             <div
               role="alert"
               data-testid="large-emails-error"
@@ -71,15 +117,17 @@ export function EmailCategoryTabs({
             >
               <span>Failed to load large emails. Please try again.</span>
             </div>
-          ) : (
-            <LargeEmailsTable emails={largeEmails.emails} />
+          )}
+          {largeEmails.status === 'success' && (
+            <LargeEmailsTable emails={largeEmails.data.emails} />
           )}
         </div>
       )}
 
       {activeTab === 'promotions' && (
         <div data-testid="panel-promotions">
-          {'error' in promotions ? (
+          {promotions.status === 'loading' && <TableSkeleton />}
+          {promotions.status === 'error' && (
             <div
               role="alert"
               data-testid="promotions-error"
@@ -87,15 +135,17 @@ export function EmailCategoryTabs({
             >
               <span>Failed to load promotions. Please try again.</span>
             </div>
-          ) : (
-            <PromotionsTable emails={promotions.emails} />
+          )}
+          {promotions.status === 'success' && (
+            <PromotionsTable emails={promotions.data.emails} />
           )}
         </div>
       )}
 
       {activeTab === 'social' && (
         <div data-testid="panel-social">
-          {'error' in social ? (
+          {social.status === 'loading' && <TableSkeleton />}
+          {social.status === 'error' && (
             <div
               role="alert"
               data-testid="social-error"
@@ -103,13 +153,14 @@ export function EmailCategoryTabs({
             >
               <span>Failed to load social emails. Please try again.</span>
             </div>
-          ) : (
-            <SocialTable emails={social.emails} />
+          )}
+          {social.status === 'success' && (
+            <SocialTable emails={social.data.emails} />
           )}
         </div>
       )}
 
-      {activeTab === 'old-emails' && <OldEmailsPanel />}
+      {activeTab === 'old-emails' && <OldEmailsPanel refreshKey={refreshKey} />}
     </div>
   );
 }

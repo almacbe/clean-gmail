@@ -1,4 +1,5 @@
 import { GetAccountStatus } from '@/application/use-cases/GetAccountStatus';
+import { GetScanSummary } from '@/application/use-cases/GetScanSummary';
 import { ScanLargeEmails } from '@/application/use-cases/ScanLargeEmails';
 import { ScanOldEmails } from '@/application/use-cases/ScanOldEmails';
 import { ScanPromotions } from '@/application/use-cases/ScanPromotions';
@@ -32,4 +33,13 @@ export function makeScanSocialUseCase(): ScanSocial {
 export function makeScanOldEmailsUseCase(): ScanOldEmails {
   const scanner = new GmailOldEmailsAdapter();
   return new ScanOldEmails(scanner);
+}
+
+export function makeGetScanSummaryUseCase(): GetScanSummary {
+  return new GetScanSummary(
+    new GmailLargeEmailAdapter(),
+    new GmailPromotionsAdapter(),
+    new GmailSocialAdapter(),
+    new GmailOldEmailsAdapter(),
+  );
 }
