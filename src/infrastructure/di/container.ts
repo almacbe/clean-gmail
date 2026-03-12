@@ -1,9 +1,11 @@
 import { GetAccountStatus } from '@/application/use-cases/GetAccountStatus';
 import { ScanLargeEmails } from '@/application/use-cases/ScanLargeEmails';
 import { ScanPromotions } from '@/application/use-cases/ScanPromotions';
+import { ScanSocial } from '@/application/use-cases/ScanSocial';
 import { GmailProfileAdapter } from '@/infrastructure/gmail/GmailProfileAdapter';
 import { GmailLargeEmailAdapter } from '@/infrastructure/gmail/GmailLargeEmailAdapter';
 import { GmailPromotionsAdapter } from '@/infrastructure/gmail/GmailPromotionsAdapter';
+import { GmailSocialAdapter } from '@/infrastructure/gmail/GmailSocialAdapter';
 
 export function makeGetAccountStatusUseCase(): GetAccountStatus {
   const profileReader = new GmailProfileAdapter();
@@ -18,4 +20,9 @@ export function makeScanLargeEmailsUseCase(): ScanLargeEmails {
 export function makeScanPromotionsUseCase(): ScanPromotions {
   const scanner = new GmailPromotionsAdapter();
   return new ScanPromotions(scanner);
+}
+
+export function makeScanSocialUseCase(): ScanSocial {
+  const scanner = new GmailSocialAdapter();
+  return new ScanSocial(scanner);
 }

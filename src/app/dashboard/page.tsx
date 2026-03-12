@@ -27,8 +27,8 @@ export default async function DashboardPage() {
 
   const baseUrl = process.env.NEXTAUTH_URL ?? 'http://localhost:3000';
 
-  const [accountResponse, scanResponse, promotionsResponse] = await Promise.all(
-    [
+  const [accountResponse, scanResponse, promotionsResponse, socialResponse] =
+    await Promise.all([
       fetch(`${baseUrl}/api/account-status`, {
         headers: { cookie },
         cache: 'no-store',
@@ -41,8 +41,11 @@ export default async function DashboardPage() {
         headers: { cookie },
         cache: 'no-store',
       }),
-    ],
-  );
+      fetch(`${baseUrl}/api/scan/social`, {
+        headers: { cookie },
+        cache: 'no-store',
+      }),
+    ]);
 
   let accountData: AccountStatusResponse;
   if (!accountResponse.ok) {
@@ -63,6 +66,13 @@ export default async function DashboardPage() {
     promotionsData = { error: 'Failed to scan promotions' };
   } else {
     promotionsData = (await promotionsResponse.json()) as ScanResponse;
+  }
+
+  let socialData: ScanResponse;
+  if (!socialResponse.ok) {
+    socialData = { error: 'Failed to scan social' };
+  } else {
+    socialData = (await socialResponse.json()) as ScanResponse;
   }
 
   const email = session.user?.email ?? '';
@@ -91,6 +101,7 @@ export default async function DashboardPage() {
           <EmailCategoryTabs
             largeEmails={scanData}
             promotions={promotionsData}
+            social={socialData}
           />
         </div>
       </main>

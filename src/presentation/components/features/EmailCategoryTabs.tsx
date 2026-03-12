@@ -4,19 +4,22 @@ import { useState } from 'react';
 import type { EmailMetadataDto } from '@/application/dtos/ScanLargeEmailsOutput';
 import { LargeEmailsTable } from '@/presentation/components/features/LargeEmailsTable';
 import { PromotionsTable } from '@/presentation/components/features/PromotionsTable';
+import { SocialTable } from '@/presentation/components/features/SocialTable';
 
 type ScanResult = { emails: EmailMetadataDto[] } | { error: string };
 
 type EmailCategoryTabsProps = {
   largeEmails: ScanResult;
   promotions: ScanResult;
+  social: ScanResult;
 };
 
-type TabId = 'large-emails' | 'promotions';
+type TabId = 'large-emails' | 'promotions' | 'social';
 
 export function EmailCategoryTabs({
   largeEmails,
   promotions,
+  social,
 }: EmailCategoryTabsProps) {
   const [activeTab, setActiveTab] = useState<TabId>('large-emails');
 
@@ -38,6 +41,14 @@ export function EmailCategoryTabs({
           data-testid="tab-promotions"
         >
           Promotions
+        </button>
+        <button
+          role="tab"
+          className={`tab${activeTab === 'social' ? ' tab-active' : ''}`}
+          onClick={() => setActiveTab('social')}
+          data-testid="tab-social"
+        >
+          Social
         </button>
       </div>
 
@@ -69,6 +80,22 @@ export function EmailCategoryTabs({
             </div>
           ) : (
             <PromotionsTable emails={promotions.emails} />
+          )}
+        </div>
+      )}
+
+      {activeTab === 'social' && (
+        <div data-testid="panel-social">
+          {'error' in social ? (
+            <div
+              role="alert"
+              data-testid="social-error"
+              className="alert alert-error"
+            >
+              <span>Failed to load social emails. Please try again.</span>
+            </div>
+          ) : (
+            <SocialTable emails={social.emails} />
           )}
         </div>
       )}
