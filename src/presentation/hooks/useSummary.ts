@@ -2,29 +2,29 @@
 
 import { useState, useEffect } from 'react';
 import type { AgeThreshold } from '@/application/dtos/ScanOldEmailsInput';
-import type { ScanEmailsOutput } from '@/application/dtos/ScanLargeEmailsOutput';
+import type { GetScanSummaryOutput } from '@/application/dtos/GetScanSummaryOutput';
 import { readCache, writeCache, CACHE_KEYS } from '@/shared/utils/scanCache';
 
-type UseOldEmailsScanResult =
+export type SummaryHookResult =
   | { status: 'loading' }
   | { status: 'error'; message: string }
-  | { status: 'success'; data: ScanEmailsOutput };
+  | { status: 'success'; data: GetScanSummaryOutput };
 
-export function useOldEmailsScan(
+export function useSummary(
   olderThan: AgeThreshold,
   refreshKey = 0,
-): UseOldEmailsScanResult {
-  const [result, setResult] = useState<UseOldEmailsScanResult>({
+): SummaryHookResult {
+  const [result, setResult] = useState<SummaryHookResult>({
     status: 'loading',
   });
 
   useEffect(
-    function fetchOldEmails() {
+    function fetchSummary() {
       let cancelled = false;
 
       async function run() {
-        const cacheKey = CACHE_KEYS.oldEmails(olderThan);
-        const cached = readCache<ScanEmailsOutput>(cacheKey);
+        const cacheKey = CACHE_KEYS.summary(olderThan);
+        const cached = readCache<GetScanSummaryOutput>(cacheKey);
         if (cached) {
           if (!cancelled) setResult({ status: 'success', data: cached });
           return;
@@ -33,9 +33,7 @@ export function useOldEmailsScan(
         if (!cancelled) setResult({ status: 'loading' });
 
         try {
-          const res = await fetch(
-            `/api/scan/old-emails?olderThan=${olderThan}`,
-          );
+          const res = await fetch(`/api/scan/summary?olderThan=${olderThan}`);
           if (!res.ok) {
             const body = (await res.json().catch(() => ({}))) as {
               error?: string;
@@ -43,12 +41,12 @@ export function useOldEmailsScan(
             if (!cancelled) {
               setResult({
                 status: 'error',
-                message: body.error ?? 'Failed to scan old emails',
+                message: body.error ?? 'Failed to fetch scan summary',
               });
             }
             return;
           }
-          const data = (await res.json()) as ScanEmailsOutput;
+          const data = (await res.json()) as GetScanSummaryOutput;
           writeCache(cacheKey, data);
           if (!cancelled) {
             setResult({ status: 'success', data });
@@ -56,7 +54,9 @@ export function useOldEmailsScan(
         } catch (err: unknown) {
           if (!cancelled) {
             const message =
-              err instanceof Error ? err.message : 'Failed to scan old emails';
+              err instanceof Error
+                ? err.message
+                : 'Failed to fetch scan summary';
             setResult({ status: 'error', message });
           }
         }
@@ -66,7 +66,6 @@ export function useOldEmailsScan(
 
       return () => {
         cancelled = true;
-        setResult({ status: 'loading' });
       };
     },
     [olderThan, refreshKey],

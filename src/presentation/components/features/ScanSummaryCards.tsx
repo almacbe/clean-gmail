@@ -2,10 +2,11 @@
 
 import type { GetScanSummaryOutput } from '@/application/dtos/GetScanSummaryOutput';
 import type { TabId } from '@/presentation/components/features/EmailCategoryTabs';
+import type { SummaryHookResult } from '@/presentation/hooks/useSummary';
 import { formatBytes } from '@/shared/utils/formatBytes';
 
 type ScanSummaryCardsProps = {
-  summary: GetScanSummaryOutput | { error: string };
+  summary: SummaryHookResult;
   onTabSelect: (tab: TabId) => void;
 };
 
@@ -47,14 +48,30 @@ export function ScanSummaryCards({
   summary,
   onTabSelect,
 }: ScanSummaryCardsProps) {
-  if ('error' in summary) {
+  if (summary.status === 'loading') {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="card bg-base-100 shadow-sm">
+            <div className="card-body p-4">
+              <div className="skeleton h-4 w-20 mb-2"></div>
+              <div className="skeleton h-8 w-16 mb-1"></div>
+              <div className="skeleton h-4 w-12"></div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (summary.status === 'error') {
     return (
       <div
         role="alert"
         data-testid="summary-error"
         className="alert alert-error mb-4"
       >
-        <span>{summary.error}</span>
+        <span>{summary.message}</span>
       </div>
     );
   }
@@ -62,7 +79,7 @@ export function ScanSummaryCards({
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       {CARDS.map(({ label, tabId, testId, key }) => {
-        const { count, totalSizeBytes } = summary[key];
+        const { count, totalSizeBytes } = summary.data[key];
         return (
           <button
             key={tabId}

@@ -6,17 +6,9 @@ import { Header } from '@/presentation/components/ui/Header';
 import { AccountStats } from '@/presentation/components/features/AccountStats';
 import { DashboardClient } from '@/presentation/components/features/DashboardClient';
 import type { GetAccountStatusOutput } from '@/application/dtos/GetAccountStatusOutput';
-import type { ScanEmailsOutput } from '@/application/dtos/ScanLargeEmailsOutput';
-import type { GetScanSummaryOutput } from '@/application/dtos/GetScanSummaryOutput';
 
 type AccountStatusResponse =
   | (GetAccountStatusOutput & { error?: never })
-  | { error: string };
-
-type ScanResponse = (ScanEmailsOutput & { error?: never }) | { error: string };
-
-type SummaryResponse =
-  | (GetScanSummaryOutput & { error?: never })
   | { error: string };
 
 export default async function DashboardPage() {
@@ -32,68 +24,16 @@ export default async function DashboardPage() {
 
   const baseUrl = process.env.NEXTAUTH_URL ?? 'http://localhost:3000';
 
-  const [
-    accountResponse,
-    scanResponse,
-    promotionsResponse,
-    socialResponse,
-    summaryResponse,
-  ] = await Promise.all([
-    fetch(`${baseUrl}/api/account-status`, {
-      headers: { cookie },
-      cache: 'no-store',
-    }),
-    fetch(`${baseUrl}/api/scan/large-emails`, {
-      headers: { cookie },
-      cache: 'no-store',
-    }),
-    fetch(`${baseUrl}/api/scan/promotions`, {
-      headers: { cookie },
-      cache: 'no-store',
-    }),
-    fetch(`${baseUrl}/api/scan/social`, {
-      headers: { cookie },
-      cache: 'no-store',
-    }),
-    fetch(`${baseUrl}/api/scan/summary?olderThan=1y`, {
-      headers: { cookie },
-      cache: 'no-store',
-    }),
-  ]);
+  const accountResponse = await fetch(`${baseUrl}/api/account-status`, {
+    headers: { cookie },
+    cache: 'no-store',
+  });
 
   let accountData: AccountStatusResponse;
   if (!accountResponse.ok) {
     accountData = { error: 'Failed to fetch account status' };
   } else {
     accountData = (await accountResponse.json()) as AccountStatusResponse;
-  }
-
-  let scanData: ScanResponse;
-  if (!scanResponse.ok) {
-    scanData = { error: 'Failed to scan emails' };
-  } else {
-    scanData = (await scanResponse.json()) as ScanResponse;
-  }
-
-  let promotionsData: ScanResponse;
-  if (!promotionsResponse.ok) {
-    promotionsData = { error: 'Failed to scan promotions' };
-  } else {
-    promotionsData = (await promotionsResponse.json()) as ScanResponse;
-  }
-
-  let socialData: ScanResponse;
-  if (!socialResponse.ok) {
-    socialData = { error: 'Failed to scan social' };
-  } else {
-    socialData = (await socialResponse.json()) as ScanResponse;
-  }
-
-  let summaryData: SummaryResponse;
-  if (!summaryResponse.ok) {
-    summaryData = { error: 'Failed to fetch scan summary' };
-  } else {
-    summaryData = (await summaryResponse.json()) as SummaryResponse;
   }
 
   const email = session.user?.email ?? '';
@@ -119,12 +59,7 @@ export default async function DashboardPage() {
           />
         )}
         <div className="p-6 max-w-4xl mx-auto">
-          <DashboardClient
-            largeEmails={scanData}
-            promotions={promotionsData}
-            social={socialData}
-            summary={summaryData}
-          />
+          <DashboardClient />
         </div>
       </main>
     </div>
