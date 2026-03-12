@@ -14,7 +14,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const useCase = makeGetAccountStatusUseCase();
     const output = await useCase.execute(token.accessToken);
     return NextResponse.json(output, { status: 200 });
-  } catch {
+  } catch (err) {
     return NextResponse.json(
       { error: 'Failed to fetch account status' },
       { status: 500 },
