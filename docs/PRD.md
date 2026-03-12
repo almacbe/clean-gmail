@@ -88,7 +88,7 @@ Anyone who wants to clean up their Gmail storage efficiently through a simple, v
 
 ---
 
-### Iteration 6 — Scan Large Emails (API)
+### Iteration 6 — Scan Large Emails (API) ✅
 
 **Goal:** Query Gmail for large emails and return metadata.
 
