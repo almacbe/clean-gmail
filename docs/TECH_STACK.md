@@ -243,7 +243,7 @@ Strict mode enabled with additional safety flags:
 
   // Auth & Gmail
   "next-auth": "^5.0.0",
-  "googleapis": "^144.0.0",
+  "googleapis": "^171.0.0",
 
   // Dev / Quality
   "eslint": "^9.0.0",

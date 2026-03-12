@@ -1,0 +1,25 @@
+export default function DashboardLoading() {
+  return (
+    <div className="p-6 max-w-4xl mx-auto">
+      <div className="skeleton h-8 w-48 mb-6"></div>
+      <div className="skeleton h-4 w-64 mb-6"></div>
+      <div className="stats stats-vertical sm:stats-horizontal shadow w-full">
+        <div className="stat">
+          <div className="skeleton h-4 w-32 mb-2"></div>
+          <div className="skeleton h-10 w-24 mb-2"></div>
+          <div className="skeleton h-3 w-40"></div>
+        </div>
+        <div className="stat">
+          <div className="skeleton h-4 w-32 mb-2"></div>
+          <div className="skeleton h-10 w-24 mb-2"></div>
+          <div className="skeleton h-3 w-40"></div>
+        </div>
+        <div className="stat">
+          <div className="skeleton h-4 w-32 mb-2"></div>
+          <div className="skeleton h-10 w-24 mb-2"></div>
+          <div className="skeleton h-3 w-40"></div>
+        </div>
+      </div>
+    </div>
+  );
+}
