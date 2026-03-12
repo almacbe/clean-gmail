@@ -111,7 +111,8 @@ After implementing each iteration, you MUST complete every step below before com
    - Use `mcp__claude-in-chrome__*` tools to verify **every "Done when" criterion** from the iteration plan in the actual running app
    - Each criterion must be tested explicitly — navigate to the relevant URL, interact with the UI, assert the outcome
    - Record a GIF of the full smoke test using `mcp__claude-in-chrome__gif_creator`
-5. Commit only after all of the above pass
+5. **Stop the dev server** after the smoke test completes (`pkill -f "next dev"` or equivalent)
+6. Commit only after all of the above pass
 
 ## Iteration Plan
 
