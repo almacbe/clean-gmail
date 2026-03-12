@@ -1,15 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import type { AgeThreshold } from '@/application/dtos/ScanOldEmailsInput';
+import type { EmailMetadataDto } from '@/application/dtos/ScanLargeEmailsOutput';
 import { EmailCategoryTabs } from '@/presentation/components/features/EmailCategoryTabs';
 import { ScanSummaryCards } from '@/presentation/components/features/ScanSummaryCards';
+import { SelectionBar } from '@/presentation/components/features/SelectionBar';
 import type { TabId } from '@/presentation/components/features/EmailCategoryTabs';
 import { useLargeEmailsScan } from '@/presentation/hooks/useLargeEmailsScan';
 import { usePromotionsScan } from '@/presentation/hooks/usePromotionsScan';
 import { useSocialScan } from '@/presentation/hooks/useSocialScan';
 import { useSummary } from '@/presentation/hooks/useSummary';
+import { useEmailSelection } from '@/presentation/hooks/useEmailSelection';
 import { clearAllScanCache } from '@/shared/utils/scanCache';
 
 const DEFAULT_SUMMARY_THRESHOLD: AgeThreshold = '1y';
@@ -17,11 +20,40 @@ const DEFAULT_SUMMARY_THRESHOLD: AgeThreshold = '1y';
 export function DashboardClient() {
   const [activeTab, setActiveTab] = useState<TabId>('large-emails');
   const [refreshKey, setRefreshKey] = useState(0);
+  const [oldEmailsForSelection, setOldEmailsForSelection] = useState<
+    EmailMetadataDto[]
+  >([]);
 
   const largeEmailsResult = useLargeEmailsScan(refreshKey);
   const promotionsResult = usePromotionsScan(refreshKey);
   const socialResult = useSocialScan(refreshKey);
   const summaryResult = useSummary(DEFAULT_SUMMARY_THRESHOLD, refreshKey);
+
+  const allEmails = useMemo(() => {
+    const emails: EmailMetadataDto[] = [];
+    if (largeEmailsResult.status === 'success')
+      emails.push(...largeEmailsResult.data.emails);
+    if (promotionsResult.status === 'success')
+      emails.push(...promotionsResult.data.emails);
+    if (socialResult.status === 'success')
+      emails.push(...socialResult.data.emails);
+    emails.push(...oldEmailsForSelection);
+    return emails;
+  }, [
+    largeEmailsResult,
+    promotionsResult,
+    socialResult,
+    oldEmailsForSelection,
+  ]);
+
+  const {
+    selectedIds,
+    selectionSummary,
+    toggle,
+    selectAll,
+    selectBySender,
+    clearSelection,
+  } = useEmailSelection(allEmails);
 
   const isLoading =
     largeEmailsResult.status === 'loading' ||
@@ -31,8 +63,14 @@ export function DashboardClient() {
 
   function handleRescan() {
     clearAllScanCache();
+    clearSelection();
     setRefreshKey((k) => k + 1);
   }
+
+  const handleOldEmailsChange = useCallback(
+    (emails: EmailMetadataDto[]) => setOldEmailsForSelection(emails),
+    [],
+  );
 
   return (
     <>
@@ -69,7 +107,19 @@ export function DashboardClient() {
         activeTab={activeTab}
         onTabChange={setActiveTab}
         refreshKey={refreshKey}
+        selectedIds={selectedIds}
+        onToggle={toggle}
+        onSelectAll={selectAll}
+        onSelectBySender={selectBySender}
+        onOldEmailsChange={handleOldEmailsChange}
       />
+      {selectionSummary.selectedCount > 0 && (
+        <SelectionBar
+          selectedCount={selectionSummary.selectedCount}
+          totalSizeBytes={selectionSummary.totalSizeBytes}
+          onClear={clearSelection}
+        />
+      )}
     </>
   );
 }

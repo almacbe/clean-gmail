@@ -1,17 +1,41 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { AgeThreshold } from '@/application/dtos/ScanOldEmailsInput';
+import type { EmailMetadataDto } from '@/application/dtos/ScanLargeEmailsOutput';
 import { useOldEmailsScan } from '@/presentation/hooks/useOldEmailsScan';
 import { OldEmailsTable } from '@/presentation/components/features/OldEmailsTable';
 
 type OldEmailsPanelProps = {
   refreshKey?: number;
+  selectedIds?: ReadonlySet<string>;
+  onToggle?: (id: string) => void;
+  onSelectAll?: (ids: string[]) => void;
+  onSelectBySender?: (
+    sender: string,
+    scope: readonly EmailMetadataDto[],
+  ) => void;
+  onEmailsChange?: (emails: EmailMetadataDto[]) => void;
 };
 
-export function OldEmailsPanel({ refreshKey = 0 }: OldEmailsPanelProps) {
+export function OldEmailsPanel({
+  refreshKey = 0,
+  selectedIds,
+  onToggle,
+  onSelectAll,
+  onSelectBySender,
+  onEmailsChange,
+}: OldEmailsPanelProps) {
   const [olderThan, setOlderThan] = useState<AgeThreshold>('1y');
   const result = useOldEmailsScan(olderThan, refreshKey);
+
+  useEffect(() => {
+    if (result.status === 'success') {
+      onEmailsChange?.(result.data.emails);
+    } else {
+      onEmailsChange?.([]);
+    }
+  }, [result, onEmailsChange]);
 
   return (
     <div data-testid="panel-old-emails">
@@ -37,7 +61,7 @@ export function OldEmailsPanel({ refreshKey = 0 }: OldEmailsPanelProps) {
           <table className="table w-full">
             <thead>
               <tr>
-                {[...Array(4)].map((_, i) => (
+                {[...Array(5)].map((_, i) => (
                   <th key={i}>
                     <div className="skeleton h-4 w-20"></div>
                   </th>
@@ -47,7 +71,7 @@ export function OldEmailsPanel({ refreshKey = 0 }: OldEmailsPanelProps) {
             <tbody>
               {[...Array(5)].map((_, i) => (
                 <tr key={i}>
-                  {[...Array(4)].map((_, j) => (
+                  {[...Array(5)].map((_, j) => (
                     <td key={j}>
                       <div className="skeleton h-4 w-full"></div>
                     </td>
@@ -70,7 +94,13 @@ export function OldEmailsPanel({ refreshKey = 0 }: OldEmailsPanelProps) {
       )}
 
       {result.status === 'success' && (
-        <OldEmailsTable emails={result.data.emails} />
+        <OldEmailsTable
+          emails={result.data.emails}
+          selectedIds={selectedIds}
+          onToggle={onToggle}
+          onSelectAll={onSelectAll}
+          onSelectBySender={onSelectBySender}
+        />
       )}
     </div>
   );

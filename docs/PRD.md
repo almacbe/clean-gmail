@@ -204,7 +204,7 @@ Anyone who wants to clean up their Gmail storage efficiently through a simple, v
 
 ---
 
-### Iteration 16 — Select Emails for Deletion
+### ✅ Iteration 16 — Select Emails for Deletion
 
 **Goal:** Let users pick which emails to delete.
 

@@ -21,6 +21,14 @@ type EmailCategoryTabsProps = {
   activeTab?: TabId;
   onTabChange?: (tab: TabId) => void;
   refreshKey?: number;
+  selectedIds?: ReadonlySet<string>;
+  onToggle?: (id: string) => void;
+  onSelectAll?: (ids: string[]) => void;
+  onSelectBySender?: (
+    sender: string,
+    scope: readonly EmailMetadataDto[],
+  ) => void;
+  onOldEmailsChange?: (emails: EmailMetadataDto[]) => void;
 };
 
 function TableSkeleton() {
@@ -59,6 +67,11 @@ export function EmailCategoryTabs({
   activeTab: controlledActiveTab,
   onTabChange,
   refreshKey = 0,
+  selectedIds,
+  onToggle,
+  onSelectAll,
+  onSelectBySender,
+  onOldEmailsChange,
 }: EmailCategoryTabsProps) {
   const [internalActiveTab, setInternalActiveTab] =
     useState<TabId>('large-emails');
@@ -119,7 +132,13 @@ export function EmailCategoryTabs({
             </div>
           )}
           {largeEmails.status === 'success' && (
-            <LargeEmailsTable emails={largeEmails.data.emails} />
+            <LargeEmailsTable
+              emails={largeEmails.data.emails}
+              selectedIds={selectedIds}
+              onToggle={onToggle}
+              onSelectAll={onSelectAll}
+              onSelectBySender={onSelectBySender}
+            />
           )}
         </div>
       )}
@@ -137,7 +156,13 @@ export function EmailCategoryTabs({
             </div>
           )}
           {promotions.status === 'success' && (
-            <PromotionsTable emails={promotions.data.emails} />
+            <PromotionsTable
+              emails={promotions.data.emails}
+              selectedIds={selectedIds}
+              onToggle={onToggle}
+              onSelectAll={onSelectAll}
+              onSelectBySender={onSelectBySender}
+            />
           )}
         </div>
       )}
@@ -155,12 +180,27 @@ export function EmailCategoryTabs({
             </div>
           )}
           {social.status === 'success' && (
-            <SocialTable emails={social.data.emails} />
+            <SocialTable
+              emails={social.data.emails}
+              selectedIds={selectedIds}
+              onToggle={onToggle}
+              onSelectAll={onSelectAll}
+              onSelectBySender={onSelectBySender}
+            />
           )}
         </div>
       )}
 
-      {activeTab === 'old-emails' && <OldEmailsPanel refreshKey={refreshKey} />}
+      {activeTab === 'old-emails' && (
+        <OldEmailsPanel
+          refreshKey={refreshKey}
+          selectedIds={selectedIds}
+          onToggle={onToggle}
+          onSelectAll={onSelectAll}
+          onSelectBySender={onSelectBySender}
+          onEmailsChange={onOldEmailsChange}
+        />
+      )}
     </div>
   );
 }

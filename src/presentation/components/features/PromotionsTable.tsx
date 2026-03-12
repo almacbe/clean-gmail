@@ -4,9 +4,22 @@ import { formatDate } from '@/shared/utils/formatDate';
 
 type PromotionsTableProps = {
   emails: EmailMetadataDto[];
+  selectedIds?: ReadonlySet<string>;
+  onToggle?: (id: string) => void;
+  onSelectAll?: (ids: string[]) => void;
+  onSelectBySender?: (
+    sender: string,
+    scope: readonly EmailMetadataDto[],
+  ) => void;
 };
 
-export function PromotionsTable({ emails }: PromotionsTableProps) {
+export function PromotionsTable({
+  emails,
+  selectedIds = new Set(),
+  onToggle,
+  onSelectAll,
+  onSelectBySender,
+}: PromotionsTableProps) {
   if (emails.length === 0) {
     return (
       <div
@@ -20,12 +33,30 @@ export function PromotionsTable({ emails }: PromotionsTableProps) {
 
   const sorted = [...emails].sort((a, b) => b.sizeEstimate - a.sizeEstimate);
   const totalSize = emails.reduce((sum, e) => sum + e.sizeEstimate, 0);
+  const allIds = sorted.map((e) => e.id);
+  const selectedInTable = allIds.filter((id) => selectedIds.has(id));
+  const allSelected =
+    allIds.length > 0 && selectedInTable.length === allIds.length;
+  const someSelected = selectedInTable.length > 0 && !allSelected;
 
   return (
     <div className="overflow-x-auto">
       <table className="table table-zebra w-full">
         <thead>
           <tr>
+            <th className="w-8">
+              <input
+                type="checkbox"
+                className="checkbox checkbox-sm"
+                checked={allSelected}
+                ref={(el) => {
+                  if (el) el.indeterminate = someSelected;
+                }}
+                onChange={() => onSelectAll?.(allIds)}
+                data-testid="select-all-checkbox"
+                aria-label="Select all promotions"
+              />
+            </th>
             <th>Sender</th>
             <th>Subject</th>
             <th>Date</th>
@@ -35,8 +66,29 @@ export function PromotionsTable({ emails }: PromotionsTableProps) {
         <tbody>
           {sorted.map((email) => (
             <tr key={email.id}>
-              <td className="max-w-xs truncate" title={email.sender}>
-                {email.sender}
+              <td>
+                <input
+                  type="checkbox"
+                  className="checkbox checkbox-sm"
+                  checked={selectedIds.has(email.id)}
+                  onChange={() => onToggle?.(email.id)}
+                  data-testid={`checkbox-${email.id}`}
+                  aria-label={`Select ${email.subject || email.sender}`}
+                />
+              </td>
+              <td className="max-w-xs" title={email.sender}>
+                <div className="flex items-center gap-2">
+                  <span className="truncate">{email.sender}</span>
+                  {onSelectBySender && (
+                    <button
+                      className="btn btn-ghost btn-xs shrink-0 opacity-60 hover:opacity-100"
+                      onClick={() => onSelectBySender(email.sender, emails)}
+                      title={`Select all from ${email.sender}`}
+                    >
+                      all
+                    </button>
+                  )}
+                </div>
               </td>
               <td className="max-w-xs truncate" title={email.subject}>
                 {email.subject || '(no subject)'}
@@ -50,6 +102,7 @@ export function PromotionsTable({ emails }: PromotionsTableProps) {
         </tbody>
         <tfoot>
           <tr>
+            <td />
             <td
               colSpan={3}
               className="font-semibold"
