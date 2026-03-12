@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { setAuthCookie } from './helpers/auth';
 
 const MOCK_ACCOUNT_STATUS = {
   emailAddress: 'testuser@gmail.com',
@@ -55,16 +56,8 @@ async function setupDashboard(
     });
   });
 
-  await page.route('**/api/auth/session', (route) => {
-    route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        user: { name: 'Test User', email: 'testuser@gmail.com', image: null },
-        expires: '2099-01-01T00:00:00.000Z',
-      }),
-    });
-  });
+  // Set a real NextAuth session cookie so server-side auth() treats the request as authenticated
+  await setAuthCookie(page);
 }
 
 test.describe('Large emails table', () => {
@@ -129,7 +122,17 @@ test.describe('Large emails table', () => {
     );
   });
 
-  test('table section is hidden when scan API returns error', async ({
+  test('shows error banner when scan API returns error', async ({ page }) => {
+    await setupDashboard(page, { scanStatusCode: 500 });
+    await page.goto('/dashboard');
+
+    await expect(page.getByTestId('large-emails-error')).toBeVisible();
+    await expect(page.getByTestId('large-emails-error')).toContainText(
+      'Failed to load large emails',
+    );
+  });
+
+  test('table and empty state are absent when scan API returns error', async ({
     page,
   }) => {
     await setupDashboard(page, { scanStatusCode: 500 });
@@ -137,6 +140,16 @@ test.describe('Large emails table', () => {
 
     await expect(page.getByTestId('large-emails-count')).not.toBeVisible();
     await expect(page.getByTestId('large-emails-empty')).not.toBeVisible();
+  });
+
+  test('mobile 375px: error banner is visible when scan fails', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+    await setupDashboard(page, { scanStatusCode: 500 });
+    await page.goto('/dashboard');
+
+    await expect(page.getByTestId('large-emails-error')).toBeVisible();
   });
 
   test('mobile 375px: table is rendered without layout overflow', async ({

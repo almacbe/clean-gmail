@@ -76,12 +76,20 @@ export default async function DashboardPage() {
             threadsTotal={(accountData as GetAccountStatusOutput).threadsTotal}
           />
         )}
-        {'emails' in scanData && (
-          <div className="p-6 max-w-4xl mx-auto">
-            <h2 className="text-xl font-bold mb-4">Large Emails (&gt;5 MB)</h2>
+        <div className="p-6 max-w-4xl mx-auto">
+          <h2 className="text-xl font-bold mb-4">Large Emails (&gt;5 MB)</h2>
+          {'error' in scanData && scanData.error ? (
+            <div
+              role="alert"
+              data-testid="large-emails-error"
+              className="alert alert-error"
+            >
+              <span>Failed to load large emails. Please try again.</span>
+            </div>
+          ) : (
             <LargeEmailsTable emails={scanData.emails} />
-          </div>
-        )}
+          )}
+        </div>
       </main>
     </div>
   );

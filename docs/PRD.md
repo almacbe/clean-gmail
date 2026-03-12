@@ -112,7 +112,7 @@ Anyone who wants to clean up their Gmail storage efficiently through a simple, v
 
 ---
 
-### Iteration 8 — Loading & Error States
+### ✅ Iteration 8 — Loading & Error States
 
 **Goal:** Handle loading and errors gracefully in the UI.
 

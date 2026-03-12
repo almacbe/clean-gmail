@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { setAuthCookie } from './helpers/auth';
 
 const MOCK_ACCOUNT_STATUS = {
   emailAddress: 'testuser@gmail.com',
@@ -41,21 +42,8 @@ async function setupAuthenticatedDashboard(
     });
   });
 
-  // Mock the NextAuth session endpoint so the dashboard thinks user is signed in
-  await page.route('**/api/auth/session', (route) => {
-    route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        user: {
-          name: 'Test User',
-          email: 'testuser@gmail.com',
-          image: null,
-        },
-        expires: '2099-01-01T00:00:00.000Z',
-      }),
-    });
-  });
+  // Set a real NextAuth session cookie so server-side auth() treats the request as authenticated
+  await setAuthCookie(page);
 }
 
 test.describe('Dashboard page', () => {
@@ -116,10 +104,10 @@ test.describe('Dashboard page', () => {
       responseBody: { error: 'Internal Server Error' },
     });
     await page.goto('/dashboard');
-    await expect(page.getByRole('alert')).toBeVisible();
-    await expect(page.getByRole('alert')).toContainText(
-      'Failed to fetch account status',
-    );
+    const accountAlert = page
+      .getByRole('alert')
+      .filter({ hasText: 'Failed to fetch account status' });
+    await expect(accountAlert).toBeVisible();
   });
 
   test('mobile 375px: stats are visible', async ({ page }) => {
