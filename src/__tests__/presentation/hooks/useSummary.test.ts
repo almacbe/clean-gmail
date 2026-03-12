@@ -88,12 +88,10 @@ describe('useSummary', () => {
 
   it('uses separate cache key per threshold', async () => {
     scanCache.writeCache(scanCache.CACHE_KEYS.summary('1y'), MOCK_SUMMARY);
-    const fetchSpy = vi
-      .fn()
-      .mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve(MOCK_SUMMARY),
-      });
+    const fetchSpy = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(MOCK_SUMMARY),
+    });
     vi.stubGlobal('fetch', fetchSpy);
 
     const { result: result1y } = renderHook(() => useSummary('1y'));
