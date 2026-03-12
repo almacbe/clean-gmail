@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
-import { makeScanLargeEmailsUseCase } from '@/infrastructure/di/container';
+import { makeScanSocialUseCase } from '@/infrastructure/di/container';
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const token = await getToken({ req, secret: process.env.AUTH_SECRET! });
@@ -11,12 +11,12 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   }
 
   try {
-    const useCase = makeScanLargeEmailsUseCase();
+    const useCase = makeScanSocialUseCase();
     const output = await useCase.execute(token.accessToken);
     return NextResponse.json(output, { status: 200 });
   } catch (err) {
     return NextResponse.json(
-      { error: 'Failed to scan large emails' },
+      { error: 'Failed to scan social' },
       { status: 500 },
     );
   }

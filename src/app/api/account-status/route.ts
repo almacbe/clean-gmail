@@ -4,7 +4,7 @@ import { getToken } from 'next-auth/jwt';
 import { makeGetAccountStatusUseCase } from '@/infrastructure/di/container';
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
-  const token = await getToken({ req, secret: process.env.AUTH_SECRET });
+  const token = await getToken({ req, secret: process.env.AUTH_SECRET! });
 
   if (!token || token.error) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

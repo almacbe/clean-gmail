@@ -136,7 +136,7 @@ Anyone who wants to clean up their Gmail storage efficiently through a simple, v
 
 ---
 
-### Iteration 10 — Scan Social
+### ✅ Iteration 10 — Scan Social
 
 **Goal:** Find social notification emails.
 

@@ -4,17 +4,15 @@ import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 import { Header } from '@/presentation/components/ui/Header';
 import { AccountStats } from '@/presentation/components/features/AccountStats';
-import { LargeEmailsTable } from '@/presentation/components/features/LargeEmailsTable';
+import { EmailCategoryTabs } from '@/presentation/components/features/EmailCategoryTabs';
 import type { GetAccountStatusOutput } from '@/application/dtos/GetAccountStatusOutput';
-import type { ScanLargeEmailsOutput } from '@/application/dtos/ScanLargeEmailsOutput';
+import type { ScanEmailsOutput } from '@/application/dtos/ScanLargeEmailsOutput';
 
 type AccountStatusResponse =
   | (GetAccountStatusOutput & { error?: never })
   | { error: string };
 
-type ScanResponse =
-  | (ScanLargeEmailsOutput & { error?: never })
-  | { error: string };
+type ScanResponse = (ScanEmailsOutput & { error?: never }) | { error: string };
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -29,16 +27,25 @@ export default async function DashboardPage() {
 
   const baseUrl = process.env.NEXTAUTH_URL ?? 'http://localhost:3000';
 
-  const [accountResponse, scanResponse] = await Promise.all([
-    fetch(`${baseUrl}/api/account-status`, {
-      headers: { cookie },
-      cache: 'no-store',
-    }),
-    fetch(`${baseUrl}/api/scan/large-emails`, {
-      headers: { cookie },
-      cache: 'no-store',
-    }),
-  ]);
+  const [accountResponse, scanResponse, promotionsResponse, socialResponse] =
+    await Promise.all([
+      fetch(`${baseUrl}/api/account-status`, {
+        headers: { cookie },
+        cache: 'no-store',
+      }),
+      fetch(`${baseUrl}/api/scan/large-emails`, {
+        headers: { cookie },
+        cache: 'no-store',
+      }),
+      fetch(`${baseUrl}/api/scan/promotions`, {
+        headers: { cookie },
+        cache: 'no-store',
+      }),
+      fetch(`${baseUrl}/api/scan/social`, {
+        headers: { cookie },
+        cache: 'no-store',
+      }),
+    ]);
 
   let accountData: AccountStatusResponse;
   if (!accountResponse.ok) {
@@ -52,6 +59,20 @@ export default async function DashboardPage() {
     scanData = { error: 'Failed to scan emails' };
   } else {
     scanData = (await scanResponse.json()) as ScanResponse;
+  }
+
+  let promotionsData: ScanResponse;
+  if (!promotionsResponse.ok) {
+    promotionsData = { error: 'Failed to scan promotions' };
+  } else {
+    promotionsData = (await promotionsResponse.json()) as ScanResponse;
+  }
+
+  let socialData: ScanResponse;
+  if (!socialResponse.ok) {
+    socialData = { error: 'Failed to scan social' };
+  } else {
+    socialData = (await socialResponse.json()) as ScanResponse;
   }
 
   const email = session.user?.email ?? '';
@@ -77,18 +98,11 @@ export default async function DashboardPage() {
           />
         )}
         <div className="p-6 max-w-4xl mx-auto">
-          <h2 className="text-xl font-bold mb-4">Large Emails (&gt;5 MB)</h2>
-          {'error' in scanData && scanData.error ? (
-            <div
-              role="alert"
-              data-testid="large-emails-error"
-              className="alert alert-error"
-            >
-              <span>Failed to load large emails. Please try again.</span>
-            </div>
-          ) : (
-            <LargeEmailsTable emails={scanData.emails} />
-          )}
+          <EmailCategoryTabs
+            largeEmails={scanData}
+            promotions={promotionsData}
+            social={socialData}
+          />
         </div>
       </main>
     </div>

@@ -6,6 +6,8 @@ export type EmailMetadataDto = {
   readonly sizeEstimate: number;
 };
 
-export type ScanLargeEmailsOutput = {
+export type ScanEmailsOutput = {
   readonly emails: EmailMetadataDto[];
 };
+
+export type ScanLargeEmailsOutput = ScanEmailsOutput;
