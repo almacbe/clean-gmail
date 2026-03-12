@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import type { AgeThreshold } from '@/application/dtos/ScanOldEmailsInput';
 import { EmailCategoryTabs } from '@/presentation/components/features/EmailCategoryTabs';
 import { ScanSummaryCards } from '@/presentation/components/features/ScanSummaryCards';
@@ -35,7 +36,14 @@ export function DashboardClient() {
 
   return (
     <>
-      <div className="mb-4 flex justify-end">
+      <div className="mb-4 flex justify-end gap-2">
+        <Link
+          href="/dashboard/top-senders"
+          className="btn btn-ghost btn-sm"
+          data-testid="top-senders-link"
+        >
+          Top Senders
+        </Link>
         <button
           data-testid="rescan-button"
           className="btn btn-primary btn-sm"

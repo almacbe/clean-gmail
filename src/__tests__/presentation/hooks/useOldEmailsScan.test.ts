@@ -73,12 +73,10 @@ describe('useOldEmailsScan', () => {
     scanCache.writeCache(scanCache.CACHE_KEYS.oldEmails('1y'), {
       emails: [{ id: '1y' }],
     });
-    const fetchSpy = vi
-      .fn()
-      .mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({ emails: [] }),
-      });
+    const fetchSpy = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ emails: [] }),
+    });
     vi.stubGlobal('fetch', fetchSpy);
 
     // '1y' should use cache (no fetch)

@@ -1,6 +1,12 @@
 # Meta Prompt — Iteration Planning
 
-Use this prompt to plan any iteration from the PRD. Replace `{{ITERATION_NUMBER}}` with the target iteration (e.g., `1`, `5`, `14`).
+Use the **Plan agent** to plan any iteration from the PRD. Replace `{{ITERATION_NUMBER}}` with the target iteration (e.g., `1`, `5`, `14`).
+
+## How to invoke
+
+```
+Agent(subagent_type="Plan", prompt="<contents of the prompt below with {{ITERATION_NUMBER}} replaced>")
+```
 
 ---
 
