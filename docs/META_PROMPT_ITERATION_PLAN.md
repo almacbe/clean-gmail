@@ -1,97 +1,115 @@
-# Meta Prompt — Iteration Planning
+# Meta Prompt - Iteration Planning
 
-Use the **Plan agent** to plan any iteration from the PRD. Replace `{{ITERATION_NUMBER}}` with the target iteration (e.g., `1`, `5`, `14`).
+Use this prompt to plan any PRD iteration with OpenCode + GPT-5.3 Codex. Replace `{{ITERATION_NUMBER}}` with the target iteration (for example: `1`, `5`, `14`).
 
 ## How to invoke
 
-```
-Agent(subagent_type="Plan", prompt="<contents of the prompt below with {{ITERATION_NUMBER}} replaced>")
+```txt
+Run this as a planning-only prompt (no code edits, no commit).
 ```
 
 ---
 
 ## Prompt
 
-```
+```txt
 Plan the implementation of Iteration {{ITERATION_NUMBER}} from the PRD.
 
-Before planning, read and internalize the following files in order:
+Execution mode:
+- Planning only. Do not edit files, do not run migrations, do not commit.
+- If information is missing, infer the safest default from repo conventions and state assumptions.
+- Ask at most one blocking question only if ambiguity materially changes architecture/scope.
 
-1. `docs/PRD.md` — Read the full iteration {{ITERATION_NUMBER}} section (goal, tasks, "Done when" criteria). Also read adjacent iterations to understand what exists before and what comes after.
-2. `docs/TECH_STACK.md` — Understand the stack, project structure, Clean Architecture layers, dependency rule, and SOLID mapping.
-3. `docs/DEFINITION_OF_DONE.md` — Every checklist item that applies to this iteration MUST be addressed in the plan.
-4. `CLAUDE.md` — Follow all key rules, architecture constraints, and testing strategy.
+Before planning, read and internalize these files in order:
 
-Then produce a step-by-step implementation plan that covers:
+1. `AGENTS.md` - source of truth for architecture boundaries, import rules, security/privacy constraints, and quality gates.
+2. `docs/PRD.md` - read Iteration {{ITERATION_NUMBER}} in full (goal, tasks, done criteria) plus adjacent iterations for context.
+3. `docs/TECH_STACK.md` - stack constraints, structure, and implementation conventions.
+4. `docs/DEFINITION_OF_DONE.md` - every applicable checklist item must be mapped in the plan.
+5. `CLAUDE.md` - use as supplemental context if anything is not covered above.
 
-### 1. Scope Analysis
-- What exactly does this iteration deliver?
-- What layers of the architecture are affected (domain, application, infrastructure, presentation)?
-- What already exists from previous iterations that this builds on?
-- What is explicitly OUT of scope (deferred to later iterations)?
+Output contract:
+- Be concise and implementation-oriented.
+- Focus on actionable steps and exact files.
+- Do not paste large code snippets.
+- Include explicit assumptions and risks.
 
-### 2. Domain Layer Changes
-- New entities, value objects, or domain services needed
-- New repository port interfaces (if any)
-- New domain errors (if any)
-- Ensure: zero external imports, pure business logic only
+Produce the plan with the following sections:
 
-### 3. Application Layer Changes
-- New use cases (one per responsibility)
-- New DTOs (input/output)
-- New port interfaces for external services (if any)
-- Ensure: depends only on domain, no framework imports
+1) Scope Analysis
+- What this iteration delivers (in/out of scope).
+- Which layers are affected (domain/application/infrastructure/presentation).
+- Dependencies on previous iterations and expectations for following iterations.
 
-### 4. Infrastructure Layer Changes
-- New adapter implementations (Gmail, Prisma, auth)
-- New Prisma schema changes / migrations (if any)
-- DI container wiring for new interfaces
-- Ensure: implements domain/application interfaces only
+2) Architecture and Boundary Check
+- Validate against dependency rule: Presentation -> Application -> Domain <- Infrastructure.
+- Identify forbidden import risks before implementation.
+- Specify required ports/contracts and where they live.
 
-### 5. Presentation Layer Changes
-- New pages, routes, or layouts
-- New components (UI only, no business logic)
-- New React Query hooks
-- Loading, error, and empty states (if UI is involved)
-- Responsive design considerations
+3) Domain Layer Plan
+- New entities/value objects/domain services/errors (if any).
+- New repository interfaces/ports (if any).
+- Invariants and business rules to enforce.
 
-### 6. Testing Plan
-Follow the project testing strategy strictly:
-- **Application layer**: List every use case and the test scenarios (happy path, edge cases, error cases). Mock all ports. This is the PRIMARY test layer.
-- **Domain layer**: Only if new value objects or domain services are introduced AND they are not already covered by application tests.
-- **Infrastructure layer**: Only integration concerns — verify correct request params, response parsing, connectivity. Do NOT re-test use-case logic.
-- **Presentation layer**: E2E tests with Playwright for new user-facing flows (if any).
-- Flag any potential duplicate tests and explain why they are avoided.
+4) Application Layer Plan
+- New use cases (single responsibility each).
+- Input/output DTOs.
+- Application ports for external dependencies.
+- Error mapping strategy (domain/app errors to caller-friendly outcomes).
 
-### 7. Definition of Done Checklist
-Go through every item in `docs/DEFINITION_OF_DONE.md` and for each:
-- Mark it as **applicable** or **not applicable** (with reason)
-- For applicable items, describe how the plan satisfies it
+5) Infrastructure Layer Plan
+- Adapter implementations (Prisma, Gmail, Auth, etc.).
+- Schema/migration impact (if applicable).
+- Retry/backoff and batching implications for Gmail integrations.
+- DI/container wiring changes.
 
-### 8. File List
-List every file that will be created or modified, organized by layer:
-- `src/domain/...`
-- `src/application/...`
-- `src/infrastructure/...`
-- `src/presentation/...`
-- `src/__tests__/...`
-- `prisma/...` (if applicable)
+6) Presentation Layer Plan
+- Routes/pages/components/hooks to add or update.
+- State/query flow and UI states (loading/error/empty/success).
+- Responsive behavior and accessibility checks for new UI.
 
-### 9. Implementation Order
-Provide a numbered sequence of steps to implement, respecting the dependency rule:
-- Domain first (entities, VOs, ports)
-- Application second (use cases, DTOs)
-- Infrastructure third (adapters, DB)
-- Presentation last (UI, hooks, pages)
-- Tests alongside each layer
+7) Test Plan (Layer-Correct)
+- Application tests (primary): list scenarios per use case (happy path, edge, failure).
+- Domain tests: only for new value objects/domain services not already covered through application tests.
+- Infrastructure tests: integration-only contract checks; avoid business-logic duplication.
+- Presentation tests: Playwright E2E for user-facing flows.
+- Explicitly call out duplicate-test risks and how to avoid them.
 
-### Constraints
-- Follow the dependency rule: Presentation → Application → Domain ← Infrastructure
-- No `any` types, no `@ts-ignore`
-- No fat interfaces — keep them small and focused
-- Each use case = single responsibility
-- Only metadata stored — never email body content
-- OAuth tokens never exposed in URLs, logs, or client-side code
-- Feature branch — never commit directly to main
-- Do not add code, tests, or features beyond what this iteration requires
+8) Definition of Done Mapping
+- For each item in `docs/DEFINITION_OF_DONE.md`: mark Applicable / Not Applicable.
+- For applicable items, explain exactly how the implementation plan satisfies it.
+
+9) File Plan
+- List exact files to create/modify, grouped by layer:
+  - `src/domain/...`
+  - `src/application/...`
+  - `src/infrastructure/...`
+  - `src/presentation/...`
+  - `src/**/__tests__/...` or `tests/...`
+  - `prisma/...` (if needed)
+
+10) Ordered Implementation Steps
+- Provide a numbered sequence with dependency-safe order:
+  1. Domain
+  2. Application
+  3. Infrastructure
+  4. Presentation
+  5. Tests and quality gates
+- Include quick verification checkpoints after each major step.
+
+11) Ready-to-Execute Handoff
+- A short "Implementation Brief" with:
+  - iteration goal
+  - top 3 technical decisions
+  - first 3 files to touch
+  - first command(s) to run
+
+Hard constraints:
+- No `any`, no `@ts-ignore`, no circular dependencies.
+- Keep interfaces small and cohesive.
+- One use case per responsibility.
+- Persist metadata only; never email body content.
+- Never expose OAuth tokens in URL/log/client.
+- Do not propose features beyond this iteration.
+- Assume feature branch workflow; never direct-to-main.
 ```
