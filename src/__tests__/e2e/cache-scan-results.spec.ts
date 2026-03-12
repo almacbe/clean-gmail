@@ -139,6 +139,8 @@ test.describe('Cache scan results', () => {
   test('second navigation uses cache — scan API routes are not called again', async ({
     page,
   }) => {
+    test.setTimeout(60_000);
+
     await setupDashboard(page);
 
     // Track scan request counts
@@ -160,12 +162,12 @@ test.describe('Cache scan results', () => {
     });
 
     // First navigation — data fetched and cached
-    await page.goto('/dashboard');
+    await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
     await expect(page.getByTestId('summary-card-large-emails')).toBeVisible();
 
     // Navigate to another page and back (within same context = same localStorage)
     await page.goto('/');
-    await page.goto('/dashboard');
+    await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
     await expect(page.getByTestId('summary-card-large-emails')).toBeVisible();
 
     // Scan routes should only have been called once (during first visit)

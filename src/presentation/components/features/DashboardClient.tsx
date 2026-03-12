@@ -4,9 +4,11 @@ import { useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import type { AgeThreshold } from '@/application/dtos/ScanOldEmailsInput';
 import type { EmailMetadataDto } from '@/application/dtos/ScanLargeEmailsOutput';
+import { GetDeletePreview } from '@/application/use-cases/GetDeletePreview';
 import { EmailCategoryTabs } from '@/presentation/components/features/EmailCategoryTabs';
 import { ScanSummaryCards } from '@/presentation/components/features/ScanSummaryCards';
 import { SelectionBar } from '@/presentation/components/features/SelectionBar';
+import { DeletePreviewModal } from '@/presentation/components/features/DeletePreviewModal';
 import type { TabId } from '@/presentation/components/features/EmailCategoryTabs';
 import { useLargeEmailsScan } from '@/presentation/hooks/useLargeEmailsScan';
 import { usePromotionsScan } from '@/presentation/hooks/usePromotionsScan';
@@ -16,10 +18,12 @@ import { useEmailSelection } from '@/presentation/hooks/useEmailSelection';
 import { clearAllScanCache } from '@/shared/utils/scanCache';
 
 const DEFAULT_SUMMARY_THRESHOLD: AgeThreshold = '1y';
+const getDeletePreview = new GetDeletePreview();
 
 export function DashboardClient() {
   const [activeTab, setActiveTab] = useState<TabId>('large-emails');
   const [refreshKey, setRefreshKey] = useState(0);
+  const [isDeletePreviewOpen, setIsDeletePreviewOpen] = useState(false);
   const [oldEmailsForSelection, setOldEmailsForSelection] = useState<
     EmailMetadataDto[]
   >([]);
@@ -55,6 +59,11 @@ export function DashboardClient() {
     clearSelection,
   } = useEmailSelection(allEmails);
 
+  const deletePreview = useMemo(
+    () => getDeletePreview.execute({ selectedIds, emails: allEmails }),
+    [selectedIds, allEmails],
+  );
+
   const isLoading =
     largeEmailsResult.status === 'loading' ||
     promotionsResult.status === 'loading' ||
@@ -64,7 +73,20 @@ export function DashboardClient() {
   function handleRescan() {
     clearAllScanCache();
     clearSelection();
+    setIsDeletePreviewOpen(false);
     setRefreshKey((k) => k + 1);
+  }
+
+  function handleDeleteSelected() {
+    setIsDeletePreviewOpen(true);
+  }
+
+  function handleCloseDeletePreview() {
+    setIsDeletePreviewOpen(false);
+  }
+
+  function handleConfirmDeletePreview() {
+    setIsDeletePreviewOpen(false);
   }
 
   const handleOldEmailsChange = useCallback(
@@ -118,8 +140,17 @@ export function DashboardClient() {
           selectedCount={selectionSummary.selectedCount}
           totalSizeBytes={selectionSummary.totalSizeBytes}
           onClear={clearSelection}
+          onDeleteSelected={handleDeleteSelected}
         />
       )}
+      <DeletePreviewModal
+        isOpen={isDeletePreviewOpen}
+        selectedCount={deletePreview.selectedCount}
+        totalSizeBytes={deletePreview.totalSizeBytes}
+        affectedSenders={deletePreview.affectedSenders}
+        onCancel={handleCloseDeletePreview}
+        onConfirm={handleConfirmDeletePreview}
+      />
     </>
   );
 }

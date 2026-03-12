@@ -187,12 +187,10 @@ test.describe('Old Emails tab', () => {
     });
 
     await page.goto('/dashboard');
-    await page.getByTestId('tab-old-emails').click();
-
-    // Wait for the request to be made
-    await page.waitForResponse((res) =>
-      res.url().includes('/api/scan/old-emails'),
-    );
+    await Promise.all([
+      page.waitForResponse((res) => res.url().includes('/api/scan/old-emails')),
+      page.getByTestId('tab-old-emails').click(),
+    ]);
 
     expect(requestUrls.some((url) => url.includes('olderThan=1y'))).toBe(true);
   });
@@ -231,18 +229,16 @@ test.describe('Old Emails tab', () => {
     });
 
     await page.goto('/dashboard');
-    await page.getByTestId('tab-old-emails').click();
-
-    // Wait for initial load
-    await page.waitForResponse((res) =>
-      res.url().includes('/api/scan/old-emails'),
-    );
+    await Promise.all([
+      page.waitForResponse((res) => res.url().includes('/api/scan/old-emails')),
+      page.getByTestId('tab-old-emails').click(),
+    ]);
 
     const select = page.locator('[data-testid="panel-old-emails"] select');
-    await select.selectOption('2y');
-
-    // Wait for the new request
-    await page.waitForResponse((res) => res.url().includes('olderThan=2y'));
+    await Promise.all([
+      page.waitForResponse((res) => res.url().includes('olderThan=2y')),
+      select.selectOption('2y'),
+    ]);
 
     expect(requestUrls.some((url) => url.includes('olderThan=2y'))).toBe(true);
   });
@@ -251,11 +247,10 @@ test.describe('Old Emails tab', () => {
     await setupDashboard(page);
     await page.goto('/dashboard');
 
-    await page.getByTestId('tab-old-emails').click();
-
-    await page.waitForResponse((res) =>
-      res.url().includes('/api/scan/old-emails'),
-    );
+    await Promise.all([
+      page.waitForResponse((res) => res.url().includes('/api/scan/old-emails')),
+      page.getByTestId('tab-old-emails').click(),
+    ]);
 
     const rows = page.locator('[data-testid="panel-old-emails"] tbody tr');
     await expect(rows).toHaveCount(2);
@@ -265,11 +260,10 @@ test.describe('Old Emails tab', () => {
     await setupDashboard(page, { oldEmails: [] });
     await page.goto('/dashboard');
 
-    await page.getByTestId('tab-old-emails').click();
-
-    await page.waitForResponse((res) =>
-      res.url().includes('/api/scan/old-emails'),
-    );
+    await Promise.all([
+      page.waitForResponse((res) => res.url().includes('/api/scan/old-emails')),
+      page.getByTestId('tab-old-emails').click(),
+    ]);
 
     await expect(page.getByTestId('old-emails-empty')).toBeVisible();
   });
@@ -278,11 +272,10 @@ test.describe('Old Emails tab', () => {
     await setupDashboard(page, { oldEmailsStatusCode: 500 });
     await page.goto('/dashboard');
 
-    await page.getByTestId('tab-old-emails').click();
-
-    await page.waitForResponse((res) =>
-      res.url().includes('/api/scan/old-emails'),
-    );
+    await Promise.all([
+      page.waitForResponse((res) => res.url().includes('/api/scan/old-emails')),
+      page.getByTestId('tab-old-emails').click(),
+    ]);
 
     await expect(page.getByTestId('old-emails-error')).toBeVisible();
   });
@@ -305,11 +298,10 @@ test.describe('Old Emails tab', () => {
     await setupDashboard(page);
     await page.goto('/dashboard');
 
-    await page.getByTestId('tab-old-emails').click();
-
-    await page.waitForResponse((res) =>
-      res.url().includes('/api/scan/old-emails'),
-    );
+    await Promise.all([
+      page.waitForResponse((res) => res.url().includes('/api/scan/old-emails')),
+      page.getByTestId('tab-old-emails').click(),
+    ]);
 
     await expect(
       page.getByRole('columnheader', { name: 'Sender' }),

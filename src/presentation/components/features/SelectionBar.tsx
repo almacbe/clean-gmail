@@ -4,12 +4,14 @@ type SelectionBarProps = {
   selectedCount: number;
   totalSizeBytes: number;
   onClear: () => void;
+  onDeleteSelected: () => void;
 };
 
 export function SelectionBar({
   selectedCount,
   totalSizeBytes,
   onClear,
+  onDeleteSelected,
 }: SelectionBarProps) {
   return (
     <div
@@ -32,7 +34,11 @@ export function SelectionBar({
         >
           Clear Selection
         </button>
-        <button className="btn btn-error btn-sm" disabled>
+        <button
+          className="btn btn-error btn-sm"
+          onClick={onDeleteSelected}
+          data-testid="selection-delete"
+        >
           Delete Selected
         </button>
       </div>

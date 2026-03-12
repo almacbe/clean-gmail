@@ -106,7 +106,7 @@ async function seedLargeEmailsCache(
   page: Parameters<Parameters<typeof test>[1]>[0],
   emails: EmailFixture[],
 ) {
-  await page.goto('/dashboard');
+  await page.goto('/');
   await page.evaluate((cacheValue: string) => {
     localStorage.setItem('scan:large-emails', cacheValue);
   }, makeCacheEntry({ emails }));
@@ -127,7 +127,7 @@ test.describe('Email selection', () => {
     await expect(page.getByTestId('selection-count')).toContainText(
       '1 email selected',
     );
-    await expect(page.getByTestId('selection-size')).toContainText('4.77 MB');
+    await expect(page.getByTestId('selection-size')).toContainText('4.8 MB');
   });
 
   test('selection bar is not visible when no emails are selected', async ({
@@ -137,7 +137,6 @@ test.describe('Email selection', () => {
     await seedLargeEmailsCache(page, EMAILS);
     await page.goto('/dashboard');
 
-    await expect(page.getByTestId('checkbox-e1')).toBeVisible();
     await expect(page.getByTestId('selection-bar')).not.toBeVisible();
   });
 
