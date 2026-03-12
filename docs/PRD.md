@@ -146,7 +146,7 @@ Anyone who wants to clean up their Gmail storage efficiently through a simple, v
 
 ---
 
-### Iteration 11 — Scan Old Emails
+### ✅ Iteration 11 — Scan Old Emails
 
 **Goal:** Find emails older than a threshold.
 

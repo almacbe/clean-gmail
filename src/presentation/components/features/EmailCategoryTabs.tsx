@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import type { EmailMetadataDto } from '@/application/dtos/ScanLargeEmailsOutput';
 import { LargeEmailsTable } from '@/presentation/components/features/LargeEmailsTable';
+import { OldEmailsPanel } from '@/presentation/components/features/OldEmailsPanel';
 import { PromotionsTable } from '@/presentation/components/features/PromotionsTable';
 import { SocialTable } from '@/presentation/components/features/SocialTable';
 
@@ -14,7 +15,7 @@ type EmailCategoryTabsProps = {
   social: ScanResult;
 };
 
-type TabId = 'large-emails' | 'promotions' | 'social';
+type TabId = 'large-emails' | 'promotions' | 'social' | 'old-emails';
 
 export function EmailCategoryTabs({
   largeEmails,
@@ -49,6 +50,14 @@ export function EmailCategoryTabs({
           data-testid="tab-social"
         >
           Social
+        </button>
+        <button
+          role="tab"
+          className={`tab${activeTab === 'old-emails' ? ' tab-active' : ''}`}
+          onClick={() => setActiveTab('old-emails')}
+          data-testid="tab-old-emails"
+        >
+          Old Emails
         </button>
       </div>
 
@@ -99,6 +108,8 @@ export function EmailCategoryTabs({
           )}
         </div>
       )}
+
+      {activeTab === 'old-emails' && <OldEmailsPanel />}
     </div>
   );
 }
