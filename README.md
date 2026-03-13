@@ -1,75 +1,122 @@
 # Clean Gmail
 
-Web app that connects to your Gmail account, analyzes your emails, and recommends which ones to delete to free up storage space.
+Clean Gmail is a web app that connects to your Gmail account, analyzes email metadata, and helps you identify high-impact cleanup opportunities.
 
-## Problem
+## Why this project
 
-Gmail accounts accumulate years of emails — newsletters, promotions, large attachments — silently eating into Google storage. Clean Gmail helps you identify and remove what you don't need.
+Gmail inboxes accumulate years of promotions, social notifications, and large messages that silently consume storage. Clean Gmail makes cleanup fast by surfacing what to delete first.
 
-## Features (Planned)
+## Current status
 
-- Sign in with Google OAuth 2.0
-- Scan for large emails, promotions, social notifications, and old emails
-- Dashboard with cleanup recommendations ranked by impact
-- Select and bulk-trash emails with undo support
-- Top senders report
-- Export results as JSON/CSV
-- Whitelist senders to protect from deletion suggestions
+Implemented today:
 
-## Tech Stack
+- Google OAuth sign-in with persistent JWT session and token refresh
+- Dashboard with account overview (email, total messages, total threads)
+- Scans for:
+  - Large emails (`larger:5M`)
+  - Promotions (`category:promotions`)
+  - Social (`category:social`)
+  - Old emails (`older_than: 6m / 1y / 2y / 5y`)
+- Summary cards for each category (count + total size)
+- Local caching of scan results (1 hour TTL) + manual rescan
+- Top senders report (top 20 by size)
+- Recommendations view ranked by potential space savings
+- Multi-select workflow (single, select all, select by sender)
+- Delete preview modal (count, total size, affected senders)
 
-- **Framework:** Next.js 16.1 (App Router)
-- **Language:** TypeScript 5.x (strict mode)
-- **Database:** PostgreSQL 16.x + Prisma 6.x
-- **Auth:** NextAuth.js v5 (Google OAuth 2.0)
-- **Styling:** Tailwind CSS 4.x + DaisyUI 5.x
-- **Testing:** Vitest + Playwright
+Planned next:
+
+- Execute delete (move to trash)
+- Undo delete
+- Sender whitelist
+- Settings and export
+
+## Tech stack
+
+- Next.js 16 (App Router)
+- TypeScript 5 (strict)
+- NextAuth.js v5 (Google OAuth)
+- Tailwind CSS 4 + DaisyUI 5
+- Vitest + Playwright
 
 ## Architecture
 
-Built with Clean Architecture, DDD, and SOLID principles:
+This project follows Clean Architecture + DDD + SOLID:
 
 ```
 src/
-├── domain/           # Business rules, entities, ports (zero external deps)
-├── application/      # Use cases, DTOs
-├── infrastructure/   # Gmail API adapter, Prisma repos, auth config
-├── presentation/     # Next.js pages, components, hooks
-└── shared/           # Cross-cutting types and utils
+├── domain/           # business rules, value objects, repository contracts
+├── application/      # use cases + DTOs
+├── infrastructure/   # Gmail adapters, auth, DI
+├── presentation/     # pages, components, hooks
+└── shared/           # cross-cutting utilities and types
 ```
 
-## Getting Started
+Dependency direction is enforced with ESLint boundaries:
+
+`presentation -> application -> domain <- infrastructure`
+
+## Privacy and security
+
+- Metadata only: no email body content is persisted
+- OAuth tokens are kept server-side and are not exposed in client session payloads
+- Gmail calls include retry/backoff behavior in adapters
+
+## Local setup
+
+### 1) Prerequisites
+
+- Node.js 22+
+- pnpm 10+
+- Google OAuth credentials (Web application)
+
+### 2) Configure environment
 
 ```bash
-# Install dependencies
-pnpm install
-
-# Set up environment variables
 cp .env.example .env
+```
 
-# Run database migrations
-pnpm prisma migrate dev
+Set values in `.env`:
 
-# Start dev server
+- `AUTH_SECRET` (generate with `npx auth secret`)
+- `AUTH_GOOGLE_ID`
+- `AUTH_GOOGLE_SECRET`
+
+For Google OAuth, add this redirect URI in Google Cloud Console:
+
+- `http://localhost:3000/api/auth/callback/google`
+
+### 3) Install and run
+
+```bash
+pnpm install
 pnpm dev
 ```
 
-## Development
+Open `http://localhost:3000`.
+
+## Scripts
 
 ```bash
-pnpm dev          # Start dev server
-pnpm build        # Production build
-pnpm lint         # ESLint check
-pnpm format       # Prettier format
-pnpm test         # Run unit/integration tests
-pnpm test:e2e     # Run E2E tests
+pnpm dev       # start dev server
+pnpm build     # production build
+pnpm lint      # ESLint
+pnpm format    # Prettier
+pnpm test      # Vitest
+pnpm test:e2e  # Playwright
 ```
 
-## Docs
+## Testing
 
-- [PRD & Iteration Plan](docs/PRD.md)
-- [Tech Stack](docs/TECH_STACK.md)
-- [Definition of Done](docs/DEFINITION_OF_DONE.md)
+- Application and domain logic: unit tests
+- Infrastructure adapters: integration-style tests with mocked providers
+- Presentation flows: Playwright end-to-end tests
+
+## Documentation
+
+- `docs/PRD.md` - product requirements + iteration plan
+- `docs/TECH_STACK.md` - technical stack details
+- `docs/DEFINITION_OF_DONE.md` - delivery quality gates
 
 ## License
 
