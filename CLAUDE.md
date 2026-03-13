@@ -106,11 +106,11 @@ After implementing each iteration, you MUST complete every step below before com
 1. `pnpm test` — all tests pass
 2. `pnpm lint` — zero errors
 3. `pnpm format` — formatting applied
-4. **Browser smoke test using the Chrome extension:**
+4. **Browser smoke test using automation tooling (Claude Chrome extension or OpenCode Playwright MCP):**
    - Start `pnpm dev` if not already running
-   - Use `mcp__claude-in-chrome__*` tools to verify **every "Done when" criterion** from the iteration plan in the actual running app
+   - Use browser automation tools to verify **every "Done when" criterion** from the iteration plan in the actual running app
    - Each criterion must be tested explicitly — navigate to the relevant URL, interact with the UI, assert the outcome
-   - Record a GIF of the full smoke test using `mcp__claude-in-chrome__gif_creator`
+   - Capture run artifacts (screenshots/video/trace) and include paths in the report
 5. **Stop the dev server** after the smoke test completes (`pkill -f "next dev"` or equivalent)
 6. Commit only after all of the above pass
 

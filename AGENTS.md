@@ -139,7 +139,7 @@ All must pass before commit:
 4. Browser smoke test in running app:
    - start `pnpm dev`
    - verify every "Done when" criterion from iteration plan
-   - record full smoke-test GIF with Chrome tooling
+   - capture smoke-test artifacts (screenshots/video/trace) with browser automation tooling
 5. stop dev server (`pkill -f "next dev"` or equivalent)
 6. commit only after all above succeed
 
