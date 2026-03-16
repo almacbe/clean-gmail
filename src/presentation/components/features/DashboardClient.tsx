@@ -17,6 +17,8 @@ import { useSummary } from '@/presentation/hooks/useSummary';
 import { useEmailSelection } from '@/presentation/hooks/useEmailSelection';
 import { clearAllScanCache, writeLastDeleted } from '@/shared/utils/scanCache';
 import { useTrashEmails } from '@/presentation/hooks/useTrashEmails';
+import { useUntrashEmails } from '@/presentation/hooks/useUntrashEmails';
+import { UndoToast } from '@/presentation/components/features/UndoToast';
 
 const DEFAULT_SUMMARY_THRESHOLD: AgeThreshold = '1y';
 const getDeletePreview = new GetDeletePreview();
@@ -61,6 +63,8 @@ export function DashboardClient() {
   } = useEmailSelection(allEmails);
 
   const trashMutation = useTrashEmails();
+  const untrashMutation = useUntrashEmails();
+  const [lastDeletedIds, setLastDeletedIds] = useState<string[]>([]);
 
   const deletePreview = useMemo(
     () => getDeletePreview.execute({ selectedIds, emails: allEmails }),
@@ -98,6 +102,7 @@ export function DashboardClient() {
       {
         onSuccess: () => {
           writeLastDeleted(idsToDelete);
+          setLastDeletedIds(idsToDelete);
           clearSelection();
           clearAllScanCache();
           setIsDeletePreviewOpen(false);
@@ -106,6 +111,25 @@ export function DashboardClient() {
         },
       },
     );
+  }
+
+  function handleUndo(ids: string[]) {
+    untrashMutation.mutate(
+      { ids },
+      {
+        onSuccess: () => {
+          setLastDeletedIds([]);
+          clearAllScanCache();
+          setRefreshKey((k) => k + 1);
+          untrashMutation.reset();
+        },
+      },
+    );
+  }
+
+  function handleDismissUndo() {
+    setLastDeletedIds([]);
+    untrashMutation.reset();
   }
 
   const handleOldEmailsChange = useCallback(
@@ -162,6 +186,13 @@ export function DashboardClient() {
           onDeleteSelected={handleDeleteSelected}
         />
       )}
+      <UndoToast
+        trashedIds={lastDeletedIds}
+        onUndo={handleUndo}
+        onDismiss={handleDismissUndo}
+        isUndoing={untrashMutation.isPending}
+        undoError={untrashMutation.error?.message ?? null}
+      />
       <DeletePreviewModal
         isOpen={isDeletePreviewOpen}
         selectedCount={deletePreview.selectedCount}

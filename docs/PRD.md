@@ -241,7 +241,7 @@ Anyone who wants to clean up their Gmail storage efficiently through a simple, v
 
 ---
 
-### Iteration 19 — Undo Last Delete
+### ✅ Iteration 19 — Undo Last Delete
 
 **Goal:** Recover from accidental deletions.
 

@@ -1,5 +1,6 @@
 import { GetAccountStatus } from '@/application/use-cases/GetAccountStatus';
 import { TrashEmails } from '@/application/use-cases/TrashEmails';
+import { UntrashEmails } from '@/application/use-cases/UntrashEmails';
 import { GetScanSummary } from '@/application/use-cases/GetScanSummary';
 import { ScanLargeEmails } from '@/application/use-cases/ScanLargeEmails';
 import { ScanOldEmails } from '@/application/use-cases/ScanOldEmails';
@@ -7,6 +8,7 @@ import { ScanPromotions } from '@/application/use-cases/ScanPromotions';
 import { ScanSocial } from '@/application/use-cases/ScanSocial';
 import { GmailProfileAdapter } from '@/infrastructure/gmail/GmailProfileAdapter';
 import { GmailTrashAdapter } from '@/infrastructure/gmail/GmailTrashAdapter';
+import { GmailUntrashAdapter } from '@/infrastructure/gmail/GmailUntrashAdapter';
 import { GmailLargeEmailAdapter } from '@/infrastructure/gmail/GmailLargeEmailAdapter';
 import { GmailOldEmailsAdapter } from '@/infrastructure/gmail/GmailOldEmailsAdapter';
 import { GmailPromotionsAdapter } from '@/infrastructure/gmail/GmailPromotionsAdapter';
@@ -39,6 +41,10 @@ export function makeScanOldEmailsUseCase(): ScanOldEmails {
 
 export function makeTrashEmailsUseCase(): TrashEmails {
   return new TrashEmails(new GmailTrashAdapter());
+}
+
+export function makeUntrashEmailsUseCase(): UntrashEmails {
+  return new UntrashEmails(new GmailUntrashAdapter());
 }
 
 export function makeGetScanSummaryUseCase(): GetScanSummary {
