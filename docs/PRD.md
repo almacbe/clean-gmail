@@ -216,7 +216,7 @@ Anyone who wants to clean up their Gmail storage efficiently through a simple, v
 
 ---
 
-### Iteration 17 — Delete Preview
+### ✅ Iteration 17 — Delete Preview
 
 **Goal:** Confirm before trashing.
 
