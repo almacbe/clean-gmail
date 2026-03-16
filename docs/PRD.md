@@ -228,7 +228,7 @@ Anyone who wants to clean up their Gmail storage efficiently through a simple, v
 
 ---
 
-### Iteration 18 — Delete Execute
+### ✅ Iteration 18 — Delete Execute
 
 **Goal:** Actually trash selected emails.
 

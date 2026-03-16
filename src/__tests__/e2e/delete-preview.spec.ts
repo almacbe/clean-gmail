@@ -152,11 +152,20 @@ test.describe('Delete preview modal', () => {
     await expect(page.getByTestId('checkbox-e2')).toBeChecked();
   });
 
-  test('confirm closes modal and keeps selection unchanged in this iteration', async ({
+  test('confirm closes modal and clears selection after successful deletion', async ({
     page,
   }) => {
     await setupPage(page);
     await seedLargeEmailsCache(page, EMAILS);
+
+    await page.route('**/api/emails/trash', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ trashedCount: 1 }),
+      }),
+    );
+
     await page.goto('/dashboard');
 
     await page.getByTestId('checkbox-e1').check();
@@ -166,9 +175,6 @@ test.describe('Delete preview modal', () => {
     await page.getByTestId('delete-preview-confirm').click();
 
     await expect(page.getByTestId('delete-preview-modal')).not.toBeVisible();
-    await expect(page.getByTestId('selection-count')).toContainText(
-      '1 email selected',
-    );
-    await expect(page.getByTestId('checkbox-e1')).toBeChecked();
+    await expect(page.getByTestId('selection-bar')).not.toBeVisible();
   });
 });

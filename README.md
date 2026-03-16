@@ -23,10 +23,10 @@ Implemented today:
 - Recommendations view ranked by potential space savings
 - Multi-select workflow (single, select all, select by sender)
 - Delete preview modal (count, total size, affected senders)
+- Delete to Trash (batch Gmail API with retry/backoff, progress state, error handling)
 
 Planned next:
 
-- Execute delete (move to trash)
 - Undo delete
 - Sender whitelist
 - Settings and export

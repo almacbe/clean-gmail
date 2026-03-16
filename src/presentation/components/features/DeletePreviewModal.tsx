@@ -5,6 +5,8 @@ type DeletePreviewModalProps = {
   selectedCount: number;
   totalSizeBytes: number;
   affectedSenders: readonly string[];
+  isDeleting: boolean;
+  deleteError: string | null;
   onCancel: () => void;
   onConfirm: () => void;
 };
@@ -14,6 +16,8 @@ export function DeletePreviewModal({
   selectedCount,
   totalSizeBytes,
   affectedSenders,
+  isDeleting,
+  deleteError,
   onCancel,
   onConfirm,
 }: DeletePreviewModalProps) {
@@ -27,6 +31,7 @@ export function DeletePreviewModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="delete-preview-title"
+      aria-busy={isDeleting}
       data-testid="delete-preview-modal"
     >
       <div className="w-full max-w-lg rounded-xl bg-base-100 p-6 shadow-2xl">
@@ -65,21 +70,45 @@ export function DeletePreviewModal({
           )}
         </div>
 
+        {deleteError && (
+          <div
+            role="alert"
+            className="alert alert-error mt-4 text-sm"
+            data-testid="delete-preview-error"
+          >
+            {deleteError}
+          </div>
+        )}
+
         <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          <button
-            className="btn btn-ghost"
-            onClick={onCancel}
-            data-testid="delete-preview-cancel"
-          >
-            Cancel
-          </button>
-          <button
-            className="btn btn-error"
-            onClick={onConfirm}
-            data-testid="delete-preview-confirm"
-          >
-            Confirm Delete
-          </button>
+          {isDeleting ? (
+            <div
+              className="flex items-center gap-2"
+              data-testid="delete-preview-loading"
+            >
+              <span className="loading loading-spinner loading-sm" />
+              <span>
+                Deleting {selectedCount} email{selectedCount !== 1 ? 's' : ''}…
+              </span>
+            </div>
+          ) : (
+            <>
+              <button
+                className="btn btn-ghost"
+                onClick={onCancel}
+                data-testid="delete-preview-cancel"
+              >
+                Cancel
+              </button>
+              <button
+                className="btn btn-error"
+                onClick={onConfirm}
+                data-testid="delete-preview-confirm"
+              >
+                Confirm Delete
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -11,6 +11,7 @@ export const CACHE_KEYS = {
   SOCIAL: 'scan:social',
   oldEmails: (olderThan: string): string => `scan:old-emails:${olderThan}`,
   summary: (olderThan: string): string => `scan:summary:${olderThan}`,
+  LAST_DELETED: 'trash:last-deleted',
 } as const;
 
 export function readCache<T>(key: string): T | null {
@@ -42,6 +43,26 @@ export function writeCache<T>(key: string, data: T): void {
 export function clearCache(key: string): void {
   if (typeof window === 'undefined') return;
   localStorage.removeItem(key);
+}
+
+export function writeLastDeleted(ids: string[]): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(CACHE_KEYS.LAST_DELETED, JSON.stringify(ids));
+  } catch {
+    // ignore quota / private-browsing errors
+  }
+}
+
+export function readLastDeleted(): string[] | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(CACHE_KEYS.LAST_DELETED);
+    if (!raw) return null;
+    return JSON.parse(raw) as string[];
+  } catch {
+    return null;
+  }
 }
 
 export function clearAllScanCache(): void {

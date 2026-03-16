@@ -15,7 +15,8 @@ import { usePromotionsScan } from '@/presentation/hooks/usePromotionsScan';
 import { useSocialScan } from '@/presentation/hooks/useSocialScan';
 import { useSummary } from '@/presentation/hooks/useSummary';
 import { useEmailSelection } from '@/presentation/hooks/useEmailSelection';
-import { clearAllScanCache } from '@/shared/utils/scanCache';
+import { clearAllScanCache, writeLastDeleted } from '@/shared/utils/scanCache';
+import { useTrashEmails } from '@/presentation/hooks/useTrashEmails';
 
 const DEFAULT_SUMMARY_THRESHOLD: AgeThreshold = '1y';
 const getDeletePreview = new GetDeletePreview();
@@ -59,6 +60,8 @@ export function DashboardClient() {
     clearSelection,
   } = useEmailSelection(allEmails);
 
+  const trashMutation = useTrashEmails();
+
   const deletePreview = useMemo(
     () => getDeletePreview.execute({ selectedIds, emails: allEmails }),
     [selectedIds, allEmails],
@@ -82,11 +85,27 @@ export function DashboardClient() {
   }
 
   function handleCloseDeletePreview() {
-    setIsDeletePreviewOpen(false);
+    if (!trashMutation.isPending) {
+      trashMutation.reset();
+      setIsDeletePreviewOpen(false);
+    }
   }
 
   function handleConfirmDeletePreview() {
-    setIsDeletePreviewOpen(false);
+    const idsToDelete = [...selectedIds];
+    trashMutation.mutate(
+      { ids: idsToDelete },
+      {
+        onSuccess: () => {
+          writeLastDeleted(idsToDelete);
+          clearSelection();
+          clearAllScanCache();
+          setIsDeletePreviewOpen(false);
+          setRefreshKey((k) => k + 1);
+          trashMutation.reset();
+        },
+      },
+    );
   }
 
   const handleOldEmailsChange = useCallback(
@@ -148,6 +167,8 @@ export function DashboardClient() {
         selectedCount={deletePreview.selectedCount}
         totalSizeBytes={deletePreview.totalSizeBytes}
         affectedSenders={deletePreview.affectedSenders}
+        isDeleting={trashMutation.isPending}
+        deleteError={trashMutation.error?.message ?? null}
         onCancel={handleCloseDeletePreview}
         onConfirm={handleConfirmDeletePreview}
       />
